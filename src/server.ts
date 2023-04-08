@@ -2,13 +2,16 @@ require('dotenv-flow').config();
 
 import http from 'http';
 import app from './app';
+import createWsServer from './socket';
 
 const port = parseInt(process.env.PORT || '8081');
 
 app.set('port', port);
 
 const server = http.createServer(app);
-server.listen(port);
+server.listen(port, () => {
+  createWsServer(server);
+});
 
 server.on('error', console.error);
 
