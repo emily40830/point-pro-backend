@@ -9,8 +9,8 @@ function createWsServer(httpServer: HttpServer) {
   io.on('connection', (socket) => {
     Logger.info(`socket connected. ${socket.id}`);
   });
-  io.on('disconnect', (socket) => {
-    Logger.info(`socket disconnected. ${socket.id}`);
+  io.on('disconnect', () => {
+    Logger.info(`socket disconnected.`);
   });
 }
 
