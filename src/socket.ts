@@ -5,8 +5,12 @@ import { Logger } from './helpers/utils';
 function createWsServer(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, { cors: { origin: '*' } });
 
-  io.on('connection', () => {
-    Logger.info('socket connected.');
+  Logger.info('Socket enabled');
+  io.on('connection', (socket) => {
+    Logger.info(`socket connected. ${socket.id}`);
+  });
+  io.on('disconnect', (socket) => {
+    Logger.info(`socket disconnected. ${socket.id}`);
   });
 }
 
