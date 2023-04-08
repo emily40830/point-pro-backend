@@ -1,14 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { Logger } from './helpers/utils';
 import morgan from 'morgan';
+import errorMiddleware from './middleware';
+import apiRouter from './routes';
 
 const app = express();
-
-app.use((req, _, next) => {
-  Logger.trace(`req ${req.path} query ${JSON.stringify(req.query)} body ${JSON.stringify(req.query)}`);
-  next();
-});
 
 app.use(morgan('combined'));
 app.use(cors());
@@ -19,5 +15,8 @@ app.get('/healthz', async (_, res) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use('/api', apiRouter);
+app.use(errorMiddleware);
 
 export default app;

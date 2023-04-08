@@ -8,7 +8,7 @@
     "build": "tsc -p .",
     "build:prod": "prisma migrate deploy && tsc -p .",
     "start": "node dist/server.js",
-    "typegen": "npx supabase gen types typescript --local --schema public > src/types/supabase.ts"
+    "typegen": "npx supabase gen types typescript --local --schema public > src/types/supabase.d.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
