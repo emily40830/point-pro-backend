@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --files src/server.ts",
     "build": "tsc -p .",
+    "build:prod": "prisma migrate deploy && tsc -p .",
     "start": "node dist/server.js",
     "typegen": "npx supabase gen types typescript --local --schema public > src/types/supabase.ts"
   },
