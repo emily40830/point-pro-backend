@@ -32,7 +32,7 @@ yarn dev
 
 ```shell
 # create migration file
-npx prisma migrate dev --name [NAME]
+npx prisma migrate dev --create-only
 
 # if just wanna create for test,
 npx prisma db push
