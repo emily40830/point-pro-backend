@@ -25,9 +25,24 @@
         "items": ["不辣", "小辣", "中辣", "大辣"]
       },
       {
-        "title": "口味",
+        "title": "特別調整",
         "type": "multiple",
         "items": ["少油", "少鹽", "無味素"]
+      },
+      {
+        "title": "少油",
+        "type": "multiple",
+        "items": ["少油"]
+      },
+      {
+        "title": "少鹽",
+        "type": "multiple",
+        "items": ["少鹽"]
+      },
+      {
+        "title": "無味素",
+        "type": "multiple",
+        "items": ["無味素"]
       }
     ]
   },

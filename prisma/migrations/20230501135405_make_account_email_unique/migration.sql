@@ -1,20 +1,10 @@
 /*
   Warnings:
 
-  - The values [MUTIPLE] on the enum `SpecialtyType` will be removed. If these variants are still used in the database, this will fail.
+  - A unique constraint covering the columns `[account]` on the table `Member` will be added. If there are existing duplicate values, this will fail.
+  - A unique constraint covering the columns `[email]` on the table `Member` will be added. If there are existing duplicate values, this will fail.
 
 */
--- AlterEnum
-BEGIN;
-CREATE TYPE "SpecialtyType_new" AS ENUM ('SINGLE', 'MULTIPLE');
-ALTER TABLE "Specialty" ALTER COLUMN "type" DROP DEFAULT;
-ALTER TABLE "Specialty" ALTER COLUMN "type" TYPE "SpecialtyType_new" USING ("type"::text::"SpecialtyType_new");
-ALTER TYPE "SpecialtyType" RENAME TO "SpecialtyType_old";
-ALTER TYPE "SpecialtyType_new" RENAME TO "SpecialtyType";
-DROP TYPE "SpecialtyType_old";
-ALTER TABLE "Specialty" ALTER COLUMN "type" SET DEFAULT 'SINGLE';
-COMMIT;
-
 -- AlterTable
 ALTER TABLE "CategoriesOnMeals" ALTER COLUMN "createdAt" SET DEFAULT now();
 
@@ -35,3 +25,9 @@ ALTER TABLE "Specialty" ALTER COLUMN "createdAt" SET DEFAULT now();
 
 -- AlterTable
 ALTER TABLE "SpecialtyItem" ALTER COLUMN "createdAt" SET DEFAULT now();
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_account_key" ON "Member"("account");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_email_key" ON "Member"("email");

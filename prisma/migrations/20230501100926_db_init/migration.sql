@@ -1,17 +1,8 @@
-/*
-  Warnings:
-
-  - You are about to drop the `member` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'MERCHANT', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "SpecialtyType" AS ENUM ('SINGLE', 'MUTIPLE');
-
--- DropTable
-DROP TABLE "member";
+CREATE TYPE "SpecialtyType" AS ENUM ('SINGLE', 'MULTIPLE');
 
 -- CreateTable
 CREATE TABLE "Member" (

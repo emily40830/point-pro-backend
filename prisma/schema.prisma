@@ -25,9 +25,10 @@ enum SpecialtyType {
 model Member {
   id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   name  String @db.VarChar(50)
-  account String @db.VarChar(50)
+  account String @db.VarChar(50) @unique
   passhash String? @db.Text 
   role Role @default(USER)
+  email String @db.VarChar(100) @unique
   createdAt DateTime @default(dbgenerated("now()"))
   updatedAt DateTime @updatedAt
   loginedAt DateTime?

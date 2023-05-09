@@ -52,11 +52,10 @@ const getSpecialties = (): Prisma.SpecialtyCreateInput[] => {
 
 const main = async () => {
   const categories = getCategories();
-  // console.log(`===== create categories: ${categories.length} =====`);
+
   const createCategories = categories.map((category) => client.category.create({ data: category }));
   const specialties = getSpecialties();
   const createSpecialties = specialties.map((specialty) => client.specialty.create({ data: specialty }));
-  // console.log(`===== create specialties: ${specialties.length} =====`);
 
   const createMeals = meals.map((meal, index) =>
     client.meal.create({
@@ -110,11 +109,6 @@ const main = async () => {
   } catch (error) {
     console.log(error);
   }
-};
-
-const mockMain = () => {
-  console.log(getCategories());
-  console.log(JSON.stringify(getSpecialties()));
 };
 
 main();
