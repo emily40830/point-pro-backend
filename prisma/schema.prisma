@@ -21,7 +21,39 @@ enum SpecialtyType {
   MULTIPLE
 }
 
+enum OrderStatus {
+  UNPAID
+  SUCCESS
+  CANCEL
+  PENDING
+}
 
+
+enum OrderType {
+  DineIn
+  TakeOut
+}
+
+enum ReservationSettingType {
+  reservation
+  period
+}
+
+enum TimeUnit {
+  Y // Year
+  M // Month
+  D // Day
+  W // Week
+  H // Hour
+  m // Minute
+  s // Second
+}
+
+enum ReservationType {
+  OnlineBooking
+  PhoneBooking
+  WalkInSeating
+}
 model Member {
   id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   name  String @db.VarChar(50)
@@ -46,6 +78,8 @@ model Meal{
     specialties SpecialtiesOnMeals[]
     createdAt DateTime @default(dbgenerated("now()"))
     updatedAt DateTime @updatedAt
+
+    orderMeals OrderMeal[]
 }
 
 model Category{
@@ -96,6 +130,133 @@ model SpecialtiesOnMeals{
     mealId String @db.Uuid
     meal Meal @relation(fields: [mealId], references: [id])
     position Int? @default(0)
+    createdAt DateTime @default(dbgenerated("now()"))
+    updatedAt DateTime @updatedAt
+}
+
+model OrderLog {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  status String 
+  parentOrderId String? @db.Uuid
+  parentOrder OrderLog? @relation("ParentOrder", fields: [parentOrderId], references: [id])
+  childOrders OrderLog[] @relation("ParentOrder")
+  reservationLogId String? @db.Uuid
+  reservationsLogs ReservationLog? @relation(fields: [reservationLogId], references: [id])
+  type OrderType @default(DineIn)
+  created_at DateTime @default(dbgenerated("now()"))
+  updated_at DateTime @updatedAt
+  orderMeals OrderMeal[]
+  paymentLogs PaymentLog[]
+}
+
+model OrderMeal {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  orderId String @db.Uuid
+  order OrderLog @relation(fields: [orderId], references: [id])
+  mealId String @db.Uuid
+  meal Meal @relation(fields: [mealId], references: [id])
+  mealTitle String? @db.VarChar(100)
+  price Int
+  mealDetails Json?
+  amount Int
+  servedAmount Int
+}
+
+model PaymentLog {
+  orderId String @db.Uuid
+  order OrderLog @relation(fields: [orderId], references: [id])
+  payment_no String @id
+  price Int
+  gateway String
+  status String
+  created_at DateTime @default(dbgenerated("now()"))
+  updated_at DateTime @updatedAt
+
+}
+
+model Seat {
+    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    prefix String @db.VarChar(2)
+    seatNo Int @db.Integer
+    amount Int @db.Integer @default(2)
+    created_at DateTime @default(dbgenerated("now()"))
+    updated_at DateTime @updatedAt
+
+    slibings SeatSlibing[] @relation(name: "Seat")
+    nextSlibings SeatSlibing[] @relation(name: "nextSeat")
+
+    periods SeatPeriod[]
+
+    @@unique([prefix, seatNo])
+}
+
+model SeatSlibing {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  seatId String @db.Uuid
+  seat Seat @relation(name: "Seat",fields: [seatId], references: [id])
+  nextSeatId String @db.Uuid
+  nextSeat Seat @relation("nextSeat",fields: [nextSeatId], references: [id])
+  created_at DateTime @default(dbgenerated("now()"))
+  updated_at DateTime @updatedAt
+}
+
+model ReservationSetting {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  type ReservationSettingType @default(reservation)
+  unit TimeUnit
+  amount Int @default(1)
+  created_at DateTime @default(dbgenerated("now()"))
+  updated_at DateTime @updatedAt
+}
+
+model Period {
+    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    title String @db.VarChar(50)
+    startedAt DateTime @default(dbgenerated("now()"))
+    endedAt DateTime? @db.Timestamp()
+    intervalType TimeUnit @default(W)
+    intervalAmount Int @default(1)
+    createdAt DateTime @default(dbgenerated("now()"))
+    updatedAt DateTime @updatedAt
+
+    seats SeatPeriod[]
+}
+
+model SeatPeriod{
+    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    seatId String @db.Uuid
+    seat Seat @relation(fields: [seatId], references: [id])
+    periodId String @db.Uuid
+    period Period @relation(fields: [periodId], references: [id])
+    startedAt DateTime @default(dbgenerated("now()"))
+    endedAt DateTime @default(dbgenerated("now()"))
+    canBooked Boolean @default(false)
+    createdAt DateTime @default(dbgenerated("now()"))
+    updatedAt DateTime @updatedAt
+
+    reservationSeat ReservationSeat?
+}
+
+model ReservationLog{
+    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    reservedAt DateTime @default(dbgenerated("now()"))
+    options Json? @default("{}")
+    type ReservationType @default(OnlineBooking)
+    startOfMeal DateTime? @default(dbgenerated("now()"))
+    endOfMeal DateTime?
+    createdAt DateTime @default(dbgenerated("now()"))
+    updatedAt DateTime @updatedAt
+
+    bookedSeat ReservationSeat?
+    orderLogs OrderLog[]
+}
+
+model ReservationSeat{
+    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    reservationLogId String? @unique @db.Uuid
+    reservationLog ReservationLog? @relation(fields: [reservationLogId], references: [id])     
+    seatPeriodId String? @unique @db.Uuid
+    seatPeriod SeatPeriod? @relation(fields: [seatPeriodId], references: [id])
     createdAt DateTime @default(dbgenerated("now()"))
     updatedAt DateTime @updatedAt
 }

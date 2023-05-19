@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --files src/server.ts",
+    "add-seeds:prod": "ts-node-dev --files prisma/seeds/seed.ts",
     "build": "tsc -p .",
     "build:prod": "prisma migrate deploy && tsc -p .",
     "start": "node dist/server.js",
@@ -14,7 +15,7 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^4.13.0",
+    "@prisma/client": "^4.14.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dayjs": "^1.11.7",
@@ -42,7 +43,7 @@
     "@types/socket.io": "^3.0.2",
     "@types/uuid": "^9.0.1",
     "@types/yup": "^0.32.0",
-    "prisma": "^4.13.0",
+    "prisma": "^4.14.1",
     "supabase": "^1.49.4",
     "ts-node-dev": "^2.0.0"
   }
