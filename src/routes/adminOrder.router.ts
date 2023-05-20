@@ -4,6 +4,8 @@ import { validateOrderData } from '../middleware';
 
 const router = express.Router();
 
+// 缺少驗證token的middleware
+
 router.get('/orders', AdminOrderController.getAllOrdersHandler);
 router.get('/orders/:orderId', AdminOrderController.getOrderHandler);
 router.post('/orders', validateOrderData, AdminOrderController.createOrderHandler);

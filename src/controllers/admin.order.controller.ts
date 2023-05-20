@@ -37,7 +37,7 @@ class AdminOrderController {
     try {
       const { orderId, status, type, orderMeals } = req.body;
 
-      const orderMeal = await prisma.orderLog.create({
+      const orderLog = await prisma.orderLog.create({
         data: {
           status: status,
           type: type,
@@ -47,7 +47,7 @@ class AdminOrderController {
         },
       });
 
-      res.status(201).json({ message: `成功建立訂單 - ${orderId}`, result: orderMeal });
+      res.status(201).json({ message: `成功建立訂單 - ${orderId}`, result: orderLog });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: error?.toString() });
     }
