@@ -4,7 +4,7 @@
   "repository": "https://github.com/emily40830/point-pro-backend.git",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --exit-child --respawn --transpile-only --files src/server.ts",
+    "dev": "ts-node-dev --exit-child --respawn --files src/server.ts",
     "add-seeds:prod": "ts-node-dev --files prisma/seeds/seed.ts",
     "build": "tsc -p .",
     "build:prod": "prisma migrate deploy && tsc -p .",
