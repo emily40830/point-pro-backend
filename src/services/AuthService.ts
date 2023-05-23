@@ -120,7 +120,7 @@ export class AuthService {
         ],
       },
     });
-    console.log(member);
+    console.log('member', member);
 
     return member || null;
   };

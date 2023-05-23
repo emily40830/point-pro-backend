@@ -1,15 +1,13 @@
 import express from 'express';
 import { AdminOrderController } from '../controllers';
-import { validateOrderData } from '../middleware';
+import { ValidateOrderData } from '../middlewares';
 
 const router = express.Router();
 
-// 缺少驗證token的middleware
-
 router.get('/orders', AdminOrderController.getAllOrdersHandler);
 router.get('/orders/:orderId', AdminOrderController.getOrderHandler);
-router.post('/orders', validateOrderData, AdminOrderController.createOrderHandler);
-router.put('/orders/:orderId', validateOrderData, AdminOrderController.updateOrderHandler);
+router.post('/orders', ValidateOrderData, AdminOrderController.createOrderHandler);
+router.put('/orders/:orderId', ValidateOrderData, AdminOrderController.updateOrderHandler);
 router.delete('/orders/:orderId', AdminOrderController.deleteOrderHandler);
 
 export default router;

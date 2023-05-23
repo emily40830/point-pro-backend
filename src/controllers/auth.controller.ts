@@ -68,21 +68,22 @@ class AuthController {
 
     try {
       const { authToken, member } = await AuthService.login({ account, password });
-      return res.status(200).send({
+      res.status(200).send({
         message: 'login successfully',
         result: { authToken, member },
       });
     } catch (error) {
+      console.log(error);
       if (error instanceof Error && 'code' in error) {
-        return res.status(error.code as number).send({
+        res.status(error.code as number).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
 
-      return res.status(500).send({
+      res.status(500).send({
         message: (error as Error).message,
-        result: {},
+        result: null,
       });
     }
   };
