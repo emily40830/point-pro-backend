@@ -19,7 +19,7 @@ app.use(sessionMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', verifyMiddleware(['/auth/login', '/auth/register']), apiRouter);
+app.use('/api', verifyMiddleware(['/auth/login', '/auth/register', '/order']), apiRouter);
 app.use(errorMiddleware);
 
 export default app;

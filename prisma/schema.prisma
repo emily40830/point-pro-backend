@@ -28,7 +28,6 @@ enum OrderStatus {
   PENDING
 }
 
-
 enum OrderType {
   DineIn
   TakeOut
@@ -54,209 +53,233 @@ enum ReservationType {
   PhoneBooking
   WalkInSeating
 }
+
 model Member {
-  id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  name  String @db.VarChar(50)
-  account String @db.VarChar(50) @unique
-  passhash String? @db.Text 
-  role Role @default(USER)
-  email String @db.VarChar(100) @unique
-  createdAt DateTime @default(dbgenerated("now()"))
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String    @db.VarChar(50)
+  account   String    @unique @db.VarChar(50)
+  passhash  String?   @db.Text
+  role      Role      @default(USER)
+  email     String    @unique @db.VarChar(100)
+  createdAt DateTime  @default(dbgenerated("now()"))
+  updatedAt DateTime  @updatedAt
   loginedAt DateTime?
 }
 
-model Meal{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    title String @db.VarChar(100)
-    coverUrl String? @db.Text
-    description String? @db.Text
-    price Int @db.Integer @default(0)
-    position Int @db.Integer @default(0)
-    published_at DateTime? @db.Timestamptz()
-    categories CategoriesOnMeals[]
-    specialties SpecialtiesOnMeals[]
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model Meal {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String    @db.VarChar(100)
+  coverUrl     String?   @db.Text
+  description  String?   @db.Text
+  price        Int       @default(0) @db.Integer
+  position     Int       @default(0) @db.Integer
+  published_at DateTime? @db.Timestamptz()
+  createdAt    DateTime  @default(dbgenerated("now()"))
+  updatedAt    DateTime  @updatedAt
 
-    orderMeals OrderMeal[]
+  // relation
+  categories  CategoriesOnMeals[]
+  specialties SpecialtiesOnMeals[]
+  orderMeals  OrderMeal[]
 }
 
-model Category{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    title String @db.VarChar(100) @unique
-    position Int? @db.Integer @default(0)
-    meals CategoriesOnMeals[]
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model Category {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String   @unique @db.VarChar(100)
+  position  Int?     @default(0) @db.Integer
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  meals CategoriesOnMeals[]
 }
 
-model CategoriesOnMeals{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    categoryId String @db.Uuid
-    category Category @relation(fields: [categoryId], references: [id])
-    mealId String @db.Uuid
-    meal Meal @relation(fields: [mealId], references: [id])
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model CategoriesOnMeals {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  categoryId String   @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [id])
+  mealId     String   @db.Uuid
+  meal       Meal     @relation(fields: [mealId], references: [id])
 }
 
-model Specialty{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    title String @db.Char(20)
-    type SpecialtyType @default(SINGLE)
-    specialtyItems SpecialtyItem[]
-    meals SpecialtiesOnMeals[]
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model Specialty {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String        @db.Char(20)
+  type      SpecialtyType @default(SINGLE)
+  createdAt DateTime      @default(dbgenerated("now()"))
+  updatedAt DateTime      @updatedAt
 
-    @@unique([type, title])
+  // relation
+  specialtyItems SpecialtyItem[]
+  meals          SpecialtiesOnMeals[]
+
+  @@unique([type, title])
 }
 
-model SpecialtyItem{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    specialtyId String @db.Uuid
-    specialty Specialty @relation(fields: [specialtyId], references: [id])
-    title String @db.Char(20)
-    price Int? @default(0)
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model SpecialtyItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String   @db.Char(20)
+  price     Int?     @default(0)
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  specialtyId String    @db.Uuid
+  specialty   Specialty @relation(fields: [specialtyId], references: [id])
 }
 
-model SpecialtiesOnMeals{
-    id  String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    specialtyId String @db.Uuid
-    specialty Specialty @relation(fields: [specialtyId], references: [id])
-    mealId String @db.Uuid
-    meal Meal @relation(fields: [mealId], references: [id])
-    position Int? @default(0)
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model SpecialtiesOnMeals {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  position  Int?     @default(0)
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  specialtyId String    @db.Uuid
+  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+  mealId      String    @db.Uuid
+  meal        Meal      @relation(fields: [mealId], references: [id])
 }
 
 model OrderLog {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  status String 
-  parentOrderId String? @db.Uuid
-  parentOrder OrderLog? @relation("ParentOrder", fields: [parentOrderId], references: [id])
-  childOrders OrderLog[] @relation("ParentOrder")
-  reservationLogId String? @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status     String
+  type       OrderType @default(DineIn)
+  created_at DateTime  @default(dbgenerated("now()"))
+  updated_at DateTime  @updatedAt
+
+  // relation
+  parentOrderId    String?         @db.Uuid
+  parentOrder      OrderLog?       @relation("ParentOrder", fields: [parentOrderId], references: [id])
+  childOrders      OrderLog[]      @relation("ParentOrder")
+  reservationLogId String?         @db.Uuid
   reservationsLogs ReservationLog? @relation(fields: [reservationLogId], references: [id])
-  type OrderType @default(DineIn)
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
-  orderMeals OrderMeal[]
-  paymentLogs PaymentLog[]
+  orderMeals       OrderMeal[]
+  paymentLogs      PaymentLog[]
 }
 
 model OrderMeal {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  orderId String @db.Uuid
-  order OrderLog @relation(fields: [orderId], references: [id])
-  mealId String @db.Uuid
-  meal Meal @relation(fields: [mealId], references: [id])
-  mealTitle String? @db.VarChar(100)
-  price Int
-  mealDetails Json?
-  amount Int
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealTitle    String? @db.VarChar(100)
+  price        Int
+  mealDetails  Json?
+  amount       Int
   servedAmount Int
+
+  // relation
+  orderId String   @db.Uuid
+  order   OrderLog @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  mealId  String   @db.Uuid
+  meal    Meal     @relation(fields: [mealId], references: [id])
 }
 
 model PaymentLog {
-  orderId String @db.Uuid
-  order OrderLog @relation(fields: [orderId], references: [id])
-  payment_no String @id
-  price Int
-  gateway String
-  status String
+  payment_no String   @id
+  price      Int
+  gateway    String
+  status     String
   created_at DateTime @default(dbgenerated("now()"))
   updated_at DateTime @updatedAt
 
+  // relation
+  orderId String   @db.Uuid
+  order   OrderLog @relation(fields: [orderId], references: [id])
 }
 
 model Seat {
-    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    prefix String @db.VarChar(2)
-    seatNo Int @db.Integer
-    amount Int @db.Integer @default(2)
-    created_at DateTime @default(dbgenerated("now()"))
-    updated_at DateTime @updatedAt
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prefix     String   @db.VarChar(2)
+  seatNo     Int      @db.Integer
+  amount     Int      @default(2) @db.Integer
+  created_at DateTime @default(dbgenerated("now()"))
+  updated_at DateTime @updatedAt
 
-    slibings SeatSlibing[] @relation(name: "Seat")
-    nextSlibings SeatSlibing[] @relation(name: "nextSeat")
+  // relation
+  slibings     SeatSlibing[] @relation(name: "Seat")
+  nextSlibings SeatSlibing[] @relation(name: "nextSeat")
+  periods      SeatPeriod[]
 
-    periods SeatPeriod[]
-
-    @@unique([prefix, seatNo])
+  @@unique([prefix, seatNo])
 }
 
 model SeatSlibing {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  seatId String @db.Uuid
-  seat Seat @relation(name: "Seat",fields: [seatId], references: [id])
-  nextSeatId String @db.Uuid
-  nextSeat Seat @relation("nextSeat",fields: [nextSeatId], references: [id])
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at DateTime @default(dbgenerated("now()"))
   updated_at DateTime @updatedAt
+
+  // relation
+  seatId     String @db.Uuid
+  seat       Seat   @relation(name: "Seat", fields: [seatId], references: [id])
+  nextSeatId String @db.Uuid
+  nextSeat   Seat   @relation("nextSeat", fields: [nextSeatId], references: [id])
 }
 
 model ReservationSetting {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  type ReservationSettingType @default(reservation)
-  unit TimeUnit
-  amount Int @default(1)
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type       ReservationSettingType @default(reservation)
+  unit       TimeUnit
+  amount     Int                    @default(1)
+  created_at DateTime               @default(dbgenerated("now()"))
+  updated_at DateTime               @updatedAt
 }
 
 model Period {
-    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    title String @db.VarChar(50)
-    startedAt DateTime @default(dbgenerated("now()"))
-    endedAt DateTime? @db.Timestamp()
-    intervalType TimeUnit @default(W)
-    intervalAmount Int @default(1)
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String    @db.VarChar(50)
+  startedAt      DateTime  @default(dbgenerated("now()"))
+  endedAt        DateTime? @db.Timestamp()
+  intervalType   TimeUnit  @default(W)
+  intervalAmount Int       @default(1)
+  createdAt      DateTime  @default(dbgenerated("now()"))
+  updatedAt      DateTime  @updatedAt
 
-    seats SeatPeriod[]
+  // relation
+  seats SeatPeriod[]
 }
 
-model SeatPeriod{
-    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    seatId String @db.Uuid
-    seat Seat @relation(fields: [seatId], references: [id])
-    periodId String @db.Uuid
-    period Period @relation(fields: [periodId], references: [id])
-    startedAt DateTime @default(dbgenerated("now()"))
-    endedAt DateTime @default(dbgenerated("now()"))
-    canBooked Boolean @default(false)
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model SeatPeriod {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  startedAt DateTime @default(dbgenerated("now()"))
+  endedAt   DateTime @default(dbgenerated("now()"))
+  canBooked Boolean  @default(false)
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
-    reservationSeat ReservationSeat?
+  // relation
+  seatId          String           @db.Uuid
+  seat            Seat             @relation(fields: [seatId], references: [id])
+  periodId        String           @db.Uuid
+  period          Period           @relation(fields: [periodId], references: [id])
+  reservationSeat ReservationSeat?
 }
 
-model ReservationLog{
-    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    reservedAt DateTime @default(dbgenerated("now()"))
-    options Json? @default("{}")
-    type ReservationType @default(OnlineBooking)
-    startOfMeal DateTime? @default(dbgenerated("now()"))
-    endOfMeal DateTime?
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model ReservationLog {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservedAt  DateTime        @default(dbgenerated("now()"))
+  options     Json?           @default("{}")
+  type        ReservationType @default(OnlineBooking)
+  startOfMeal DateTime?       @default(dbgenerated("now()"))
+  endOfMeal   DateTime?
+  createdAt   DateTime        @default(dbgenerated("now()"))
+  updatedAt   DateTime        @updatedAt
 
-    bookedSeat ReservationSeat?
-    orderLogs OrderLog[]
+  // relation
+  bookedSeat ReservationSeat?
+  orderLogs  OrderLog[]
 }
 
-model ReservationSeat{
-    id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    reservationLogId String? @unique @db.Uuid
-    reservationLog ReservationLog? @relation(fields: [reservationLogId], references: [id])     
-    seatPeriodId String? @unique @db.Uuid
-    seatPeriod SeatPeriod? @relation(fields: [seatPeriodId], references: [id])
-    createdAt DateTime @default(dbgenerated("now()"))
-    updatedAt DateTime @updatedAt
+model ReservationSeat {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  reservationLogId String?         @unique @db.Uuid
+  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id])
+  seatPeriodId     String?         @unique @db.Uuid
+  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id])
 }
