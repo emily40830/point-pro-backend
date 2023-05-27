@@ -1,16 +1,19 @@
 import { RequestHandler } from 'express';
+import { validate as uuidValidate } from 'uuid';
 import { ApiResponse } from '../types/shared';
 import { prismaClient } from '../helpers';
+import { OrderLog } from '@prisma/client';
 
 class OrderController {
   public static createOrderHandler: RequestHandler = async (req, res: ApiResponse, next) => {
     try {
-      const { type, status, orderMeals } = req.body;
+      const { type, status, orderMeals, reservationLogId } = req.body;
 
       const orderLog = await prismaClient.orderLog.create({
         data: {
           status,
           type,
+          reservationLogId,
           orderMeals: {
             createMany: {
               data: orderMeals,
@@ -28,8 +31,25 @@ class OrderController {
     }
   };
 
-  public static getOrdersHandler: RequestHandler = async (req, res: ApiResponse, next) => {
+  public static getOrdersHandler: RequestHandler<
+    {},
+    {},
+    {},
+    {
+      reservationLogId: OrderLog['reservationLogId'];
+    }
+  > = async (req, res: ApiResponse, next) => {
     try {
+      const { reservationLogId } = req.query;
+
+      if (!reservationLogId) {
+        return res.status(401).send({ message: 'Reservation ID is required.', result: [] });
+      }
+
+      if (!uuidValidate(reservationLogId)) {
+        return res.status(401).send({ message: 'No such reservation ID found.', result: [] });
+      }
+
       const orders = await prismaClient.orderLog.findMany({
         select: {
           status: true,
@@ -47,6 +67,9 @@ class OrderController {
               mealDetails: true,
             },
           },
+        },
+        where: {
+          reservationLogId,
         },
       });
 
