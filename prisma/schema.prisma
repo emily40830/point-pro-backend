@@ -101,14 +101,14 @@ model CategoriesOnMeals {
 
   // relation
   categoryId String   @db.Uuid
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   mealId     String   @db.Uuid
-  meal       Meal     @relation(fields: [mealId], references: [id])
+  meal       Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
 }
 
 model Specialty {
   id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title     String        @db.Char(20)
+  title     String        @unique @db.VarChar(50)
   type      SpecialtyType @default(SINGLE)
   createdAt DateTime      @default(dbgenerated("now()"))
   updatedAt DateTime      @updatedAt
@@ -116,20 +116,18 @@ model Specialty {
   // relation
   specialtyItems SpecialtyItem[]
   meals          SpecialtiesOnMeals[]
-
-  @@unique([type, title])
 }
 
 model SpecialtyItem {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title     String   @db.Char(20)
+  title     String   @unique @db.VarChar(50)
   price     Int?     @default(0)
   createdAt DateTime @default(dbgenerated("now()"))
   updatedAt DateTime @updatedAt
 
   // relation
   specialtyId String    @db.Uuid
-  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
 }
 
 model SpecialtiesOnMeals {
@@ -140,17 +138,17 @@ model SpecialtiesOnMeals {
 
   // relation
   specialtyId String    @db.Uuid
-  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
   mealId      String    @db.Uuid
-  meal        Meal      @relation(fields: [mealId], references: [id])
+  meal        Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
 }
 
 model OrderLog {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status     String
-  type       OrderType @default(DineIn)
-  created_at DateTime  @default(dbgenerated("now()"))
-  updated_at DateTime  @updatedAt
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status     OrderStatus @default(PENDING)
+  type       OrderType   @default(DineIn)
+  created_at DateTime    @default(dbgenerated("now()"))
+  updated_at DateTime    @updatedAt
 
   // relation
   parentOrderId    String?         @db.Uuid
