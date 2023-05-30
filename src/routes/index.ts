@@ -5,6 +5,7 @@ import authRouter from './auth.router';
 import orderRouter from './order.router';
 import mealRouter from './meal.router';
 import adminOrderRouter from './adminOrder.router';
+import menuRouter from './menu.router';
 
 const apiRouter = Router();
 
@@ -25,5 +26,6 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/order', orderRouter);
 apiRouter.use('/meal', mealRouter);
 apiRouter.use('/admin', adminOrderRouter);
+apiRouter.use('/menu', menuRouter);
 
 export default apiRouter;
