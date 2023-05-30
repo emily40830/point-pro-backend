@@ -25,6 +25,7 @@
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.0",
+    "line-pay-merchant": "^0.9.0",
     "morgan": "^1.10.0",
     "pg": "^8.10.0",
     "ramda": "^0.29.0",

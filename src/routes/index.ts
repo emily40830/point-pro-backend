@@ -6,6 +6,7 @@ import orderRouter from './order.router';
 import mealRouter from './meal.router';
 import adminOrderRouter from './adminOrder.router';
 import menuRouter from './menu.router';
+import paymentRouter from './payment.router';
 
 const apiRouter = Router();
 
@@ -27,5 +28,6 @@ apiRouter.use('/order', orderRouter);
 apiRouter.use('/meal', mealRouter);
 apiRouter.use('/admin', adminOrderRouter);
 apiRouter.use('/menu', menuRouter);
+apiRouter.use('/payment/line-pay', paymentRouter);
 
 export default apiRouter;
