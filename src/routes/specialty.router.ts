@@ -3,10 +3,10 @@ import { SpecialtyController } from '../controllers';
 
 const specialtyRouter = Router();
 
-specialtyRouter.get('/specialties', SpecialtyController.getSpecialtyHandler);
-specialtyRouter.get('/specialty/:id', SpecialtyController.getSpecialtyHandler);
-specialtyRouter.post('/specialty', SpecialtyController.createSpecialtyHandler);
-specialtyRouter.patch('/specialty/:id', SpecialtyController.updateSpecialtyHandler);
-specialtyRouter.delete('/specialty/:id', SpecialtyController.deleteSpecialtyHandler);
+specialtyRouter.get('/', SpecialtyController.getSpecialtyHandler);
+specialtyRouter.get('/:specialtyId', SpecialtyController.getSpecialtyHandler);
+specialtyRouter.post('/', SpecialtyController.createSpecialtyHandler);
+specialtyRouter.patch('/:specialtyId', SpecialtyController.updateSpecialtyHandler);
+specialtyRouter.delete('/:specialtyId', SpecialtyController.deleteSpecialtyHandler);
 
 export default specialtyRouter;
