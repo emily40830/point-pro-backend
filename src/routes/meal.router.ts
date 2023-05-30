@@ -3,10 +3,10 @@ import { MealController } from '../controllers';
 
 const mealRouter = Router();
 
-mealRouter.get('/meals', MealController.getMealHandler);
-mealRouter.get('/meal/:id', MealController.getMealHandler);
-mealRouter.post('/meal', MealController.createMealHandler);
-mealRouter.patch('/meal/:id', MealController.updateMealHandler);
-mealRouter.delete('/meal/:id', MealController.deleteMealHandler);
+mealRouter.get('/', MealController.getMealHandler);
+mealRouter.get('/:mealId', MealController.getMealHandler);
+mealRouter.post('/', MealController.createMealHandler);
+mealRouter.patch('/:mealId', MealController.updateMealHandler);
+mealRouter.delete('/:mealId', MealController.deleteMealHandler);
 
 export default mealRouter;
