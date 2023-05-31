@@ -6,28 +6,40 @@ class MenuController {
   public static getMenuHandler: RequestHandler = async (req, res: ApiResponse, next) => {
     try {
       // [TODO: token validate?]
-      const menu = await prismaClient.categoriesOnMeals.findMany({
+      const menu = await prismaClient.category.findMany({
         select: {
-          category: {
+          id: true,
+          title: true,
+          position: true,
+          meals: {
             select: {
-              title: true,
-              meals: {
+              meal: {
                 select: {
-                  meal: {
+                  id: true,
+                  title: true,
+                  coverUrl: true,
+                  description: true,
+                  price: true,
+                  position: true,
+                  categories: {
                     select: {
-                      title: true,
-                      coverUrl: true,
-                      description: true,
-                      price: true,
-                      specialties: {
+                      category: {
                         select: {
-                          specialty: {
-                            select: {
-                              title: true,
-                              type: true,
-                              items: true,
-                            },
-                          },
+                          id: true,
+                          title: true,
+                          position: true,
+                        },
+                      },
+                    },
+                  },
+                  specialties: {
+                    select: {
+                      specialty: {
+                        select: {
+                          id: true,
+                          title: true,
+                          type: true,
+                          items: true,
                         },
                       },
                     },
@@ -39,10 +51,11 @@ class MenuController {
         },
       });
 
-      const result = menu.map(({ category }) => ({
+      const result = menu.map((category) => ({
         ...category,
         meals: category.meals.map(({ meal }) => ({
           ...meal,
+          categories: meal.categories.map(({ category }) => ({ ...category })),
           specialties: meal.specialties.map(({ specialty }) => ({ ...specialty })),
         })),
       }));

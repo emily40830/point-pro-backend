@@ -156,11 +156,11 @@ model SpecialtiesOnSpecialtyItems {
 }
 
 model OrderLog {
-  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status     OrderStatus @default(PENDING)
-  type       OrderType   @default(DineIn)
-  created_at DateTime    @default(dbgenerated("now()"))
-  updated_at DateTime    @updatedAt
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status    OrderStatus @default(PENDING)
+  type      OrderType   @default(DineIn)
+  createdAt DateTime    @default(dbgenerated("now()"))
+  updatedAt DateTime    @updatedAt
 
   // relation
   parentOrderId    String?         @db.Uuid
@@ -178,7 +178,7 @@ model OrderMeal {
   price        Int
   mealDetails  Json?
   amount       Int
-  servedAmount Int
+  servedAmount Int     @default(0)
 
   // relation
   orderId String   @db.Uuid
