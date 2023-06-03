@@ -1,0 +1,84 @@
+[
+  {
+    "title": "辣度",
+    "type": "single",
+    "items": [
+      {
+        "title": "不辣",
+        "price": 0
+      },
+      {
+        "title": "小辣",
+        "price": 0
+      },
+      {
+        "title": "中辣",
+        "price": 0
+      },
+      {
+        "title": "大辣",
+        "price": 0
+      }
+    ]
+  },
+  {
+    "title": "特別調整",
+    "type": "multiple",
+    "items": [
+      {
+        "title": "少油",
+        "price": 0
+      },
+      {
+        "title": "少鹽",
+        "price": 0
+      },
+      {
+        "title": "無味素",
+        "price": 0
+      },
+      {
+        "title": "不加蔥",
+        "price": 0
+      },
+      {
+        "title": "不加洋蔥",
+        "price": 0
+      },
+      {
+        "title": "不加香菜",
+        "price": 0
+      },
+      {
+        "title": "不加薑",
+        "price": 0
+      },
+      {
+        "title": "不加胡椒",
+        "price": 0
+      },
+      {
+        "title": "吃素",
+        "price": 0
+      },
+      {
+        "title": "蛋奶素",
+        "price": 0
+      }
+    ]
+  },
+  {
+    "title": "加量",
+    "type": "single",
+    "items": [
+      {
+        "title": "加10元",
+        "price": 10
+      },
+      {
+        "title": "加20元",
+        "price": 20
+      }
+    ]
+  }
+]
