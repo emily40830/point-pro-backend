@@ -1,4 +1,4 @@
-import { createSeatsData, getCategories, getSpecialtyItems, getSpecialties, getMeals } from './scripts';
+import { getCategories, getSpecialtyItems, getSpecialties, getMeals } from './scripts';
 import client from './client';
 
 const main = async () => {
@@ -16,11 +16,28 @@ const main = async () => {
 
   try {
     await client.meal.deleteMany();
-    await client.category.deleteMany();
-    await client.specialty.deleteMany();
-    await client.specialtyItem.deleteMany();
+    console.info('delete all meals');
 
-    await client.$transaction([...createCategories, ...createSpecialtyItems, ...createSpecialties, ...createMeals]);
+    await client.category.deleteMany();
+    console.info('delete all categories');
+
+    await client.specialty.deleteMany();
+    console.info('delete all specialties');
+
+    await client.specialtyItem.deleteMany();
+    console.info('delete all specialty items');
+
+    await client.$transaction([...createCategories]);
+    console.info('create all categories');
+
+    await client.$transaction([...createSpecialtyItems]);
+    console.info('create all specialty items');
+
+    await client.$transaction([...createSpecialties]);
+    console.info('create all specialties');
+
+    await client.$transaction([...createMeals]);
+    console.info('create all meals');
   } catch (error) {
     console.log(error);
   }
