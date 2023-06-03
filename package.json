@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --exit-child --respawn --files src/server.ts",
     "add-seeds:prod": "ts-node-dev --files prisma/migrate.ts",
     "build": "tsc -p .",
-    "build:prod": "prisma migrate deploy && tsc -p .",
+    "build:prod": "prisma migrate deploy && prisma generate && tsc -p .",
     "start": "node dist/server.js",
     "makemigrations": "npx prisma migrate dev --create-only"
   },
