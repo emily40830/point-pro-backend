@@ -114,8 +114,8 @@ model Specialty {
   updatedAt DateTime      @updatedAt
 
   // relation
-  specialtyItems SpecialtyItem[]
-  meals          SpecialtiesOnMeals[]
+  items SpecialtiesOnSpecialtyItems[]
+  meals SpecialtiesOnMeals[]
 }
 
 model SpecialtyItem {
@@ -126,8 +126,7 @@ model SpecialtyItem {
   updatedAt DateTime @updatedAt
 
   // relation
-  specialtyId String    @db.Uuid
-  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  fromSpecialties SpecialtiesOnSpecialtyItems[]
 }
 
 model SpecialtiesOnMeals {
@@ -141,6 +140,19 @@ model SpecialtiesOnMeals {
   specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
   mealId      String    @db.Uuid
   meal        Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
+}
+
+model SpecialtiesOnSpecialtyItems {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  position  Int?     @default(0)
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  specialtyId     String        @db.Uuid
+  specialty       Specialty     @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  specialtyItemId String        @db.Uuid
+  specialtyItem   SpecialtyItem @relation(fields: [specialtyItemId], references: [id], onDelete: Cascade)
 }
 
 model OrderLog {
@@ -191,20 +203,20 @@ model PaymentLog {
 model Seat {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   prefix     String   @db.VarChar(2)
-  seatNo     Int      @db.Integer
+  no         Int      @db.Integer
   amount     Int      @default(2) @db.Integer
   created_at DateTime @default(dbgenerated("now()"))
   updated_at DateTime @updatedAt
 
   // relation
-  slibings     SeatSlibing[] @relation(name: "Seat")
-  nextSlibings SeatSlibing[] @relation(name: "nextSeat")
+  siblings     SeatSibling[] @relation(name: "Seat")
+  nextSiblings SeatSibling[] @relation(name: "nextSeat")
   periods      SeatPeriod[]
 
-  @@unique([prefix, seatNo])
+  @@unique([prefix, no], name: "seatNo")
 }
 
-model SeatSlibing {
+model SeatSibling {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at DateTime @default(dbgenerated("now()"))
   updated_at DateTime @updatedAt
