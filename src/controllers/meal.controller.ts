@@ -5,6 +5,24 @@ import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
 
 class MealController {
+  public static getAllMealsHandler: RequestHandler = async (req, res: ApiResponse) => {
+    // validate input
+    try {
+      let meal = await prismaClient.meal.findMany({ take: 100 });
+
+      return res.status(200).send({
+        message: 'successfully get meals',
+        result: meal,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: null,
+        });
+      }
+    }
+  };
   public static getMealHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     try {
@@ -19,7 +37,7 @@ class MealController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
@@ -48,7 +66,7 @@ class MealController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
@@ -66,7 +84,7 @@ class MealController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
@@ -87,7 +105,7 @@ class MealController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }

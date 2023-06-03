@@ -33,8 +33,9 @@ class SpecialtyController {
         data: {
           title,
           type,
-          // need to edit
-          specialtyItems,
+          items: {
+            connect: specialtyItems,
+          },
         },
       });
 
@@ -46,7 +47,7 @@ class SpecialtyController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
@@ -66,7 +67,7 @@ class SpecialtyController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
@@ -88,7 +89,7 @@ class SpecialtyController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
         });
       }
     }
