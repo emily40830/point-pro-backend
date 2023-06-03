@@ -25,12 +25,7 @@ class MenuController {
                             select: {
                               title: true,
                               type: true,
-                              specialtyItems: {
-                                select: {
-                                  title: true,
-                                  price: true,
-                                },
-                              },
+                              items: true,
                             },
                           },
                         },
