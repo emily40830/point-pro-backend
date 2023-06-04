@@ -73,6 +73,7 @@ model Meal {
   description String?   @db.Text
   price       Int       @default(0) @db.Integer
   position    Int       @default(0) @db.Integer
+  isPopular   Boolean   @default(false)
   publishedAt DateTime? @db.Timestamptz()
   createdAt   DateTime  @default(dbgenerated("now()"))
   updatedAt   DateTime  @updatedAt
@@ -223,9 +224,9 @@ model SeatSibling {
 
   // relation
   seatId     String @db.Uuid
-  seat       Seat   @relation(name: "Seat", fields: [seatId], references: [id])
+  seat       Seat   @relation(name: "Seat", fields: [seatId], references: [id], onDelete: Cascade)
   nextSeatId String @db.Uuid
-  nextSeat   Seat   @relation("nextSeat", fields: [nextSeatId], references: [id])
+  nextSeat   Seat   @relation("nextSeat", fields: [nextSeatId], references: [id], onDelete: Cascade)
 }
 
 model ReservationSetting {
@@ -261,9 +262,9 @@ model SeatPeriod {
 
   // relation
   seatId          String           @db.Uuid
-  seat            Seat             @relation(fields: [seatId], references: [id])
+  seat            Seat             @relation(fields: [seatId], references: [id], onDelete: Cascade)
   periodId        String           @db.Uuid
-  period          Period           @relation(fields: [periodId], references: [id])
+  period          Period           @relation(fields: [periodId], references: [id], onDelete: Cascade)
   reservationSeat ReservationSeat?
 }
 
@@ -289,7 +290,7 @@ model ReservationSeat {
 
   // relation
   reservationLogId String?         @unique @db.Uuid
-  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id])
+  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
   seatPeriodId     String?         @unique @db.Uuid
-  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id])
+  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id], onDelete: Cascade)
 }

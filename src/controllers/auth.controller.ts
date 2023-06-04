@@ -2,10 +2,7 @@ import { RequestHandler } from 'express';
 import { ApiResponse } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
-import { dayjs, prismaClient } from '../helpers';
-import { secret } from './../helpers';
-
-import jwt from 'jsonwebtoken';
+import { prismaClient } from '../helpers';
 
 class AuthController {
   public static generateTokenHandler: RequestHandler = async (req, res: ApiResponse) => {
