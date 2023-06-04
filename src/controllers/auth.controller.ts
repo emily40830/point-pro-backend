@@ -2,9 +2,77 @@ import { RequestHandler } from 'express';
 import { ApiResponse } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
+import { dayjs, prismaClient } from '../helpers';
+import { secret } from './../helpers';
+
+import jwt from 'jsonwebtoken';
 
 class AuthController {
-  public static generateTokenHandler: RequestHandler = async (req, res: ApiResponse) => {};
+  public static generateTokenHandler: RequestHandler = async (req, res: ApiResponse) => {
+    // validate input
+    const inputSchema = object({
+      reservationLogId: string().uuid().required().lowercase(),
+    });
+
+    try {
+      await inputSchema.validate(req.body);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: `invalid input:${error.message}`,
+          result: null,
+        });
+      }
+    }
+
+    const { reservationLogId } = inputSchema.cast(req.body);
+
+    const reservation = await prismaClient.reservationSeat.findFirst({
+      where: {
+        id: reservationLogId,
+      },
+      include: {
+        reservationLog: true,
+        seatPeriod: true,
+      },
+    });
+
+    if (reservation) {
+      const { reservationLog, seatPeriod } = reservation;
+
+      const reservationType = reservationLog?.type;
+
+      const seatAndPeriod = await prismaClient.seatPeriod.findUnique({
+        where: {
+          id: seatPeriod?.id,
+        },
+        include: {
+          seat: true,
+          period: true,
+        },
+      });
+
+      const seatNo = seatAndPeriod?.seat.prefix + '-' + seatAndPeriod?.seat.no.toString().padStart(2, '0');
+      const startTime = new Date();
+      const periodStartTime = seatAndPeriod?.startedAt;
+      const periodEndTime = seatAndPeriod?.endedAt;
+
+      const token = AuthService.signJWT({
+        seatNo,
+        reservationType,
+        startTime,
+        reservationLogId,
+        periodStartTime,
+        periodEndTime,
+      });
+      res.status(200).send({
+        message: 'successfully create token',
+        result: {
+          token,
+        },
+      });
+    }
+  };
   public static registerHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     const inputSchema = object({
