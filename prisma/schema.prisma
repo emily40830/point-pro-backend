@@ -67,15 +67,15 @@ model Member {
 }
 
 model Meal {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title        String    @db.VarChar(100)
-  coverUrl     String?   @db.Text
-  description  String?   @db.Text
-  price        Int       @default(0) @db.Integer
-  position     Int       @default(0) @db.Integer
-  published_at DateTime? @db.Timestamptz()
-  createdAt    DateTime  @default(dbgenerated("now()"))
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String    @db.VarChar(100)
+  coverUrl    String?   @db.Text
+  description String?   @db.Text
+  price       Int       @default(0) @db.Integer
+  position    Int       @default(0) @db.Integer
+  publishedAt DateTime? @db.Timestamptz()
+  createdAt   DateTime  @default(dbgenerated("now()"))
+  updatedAt   DateTime  @updatedAt
 
   // relation
   categories  CategoriesOnMeals[]
@@ -188,12 +188,12 @@ model OrderMeal {
 }
 
 model PaymentLog {
-  payment_no String   @id
-  price      Int
-  gateway    String
-  status     String
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  paymentNo String   @id
+  price     Int
+  gateway   String
+  status    String
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
   orderId String   @db.Uuid
@@ -201,12 +201,12 @@ model PaymentLog {
 }
 
 model Seat {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  prefix     String   @db.VarChar(2)
-  no         Int      @db.Integer
-  amount     Int      @default(2) @db.Integer
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prefix    String   @db.VarChar(2)
+  no        Int      @db.Integer
+  amount    Int      @default(2) @db.Integer
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
   siblings     SeatSibling[] @relation(name: "Seat")
@@ -217,9 +217,9 @@ model Seat {
 }
 
 model SeatSibling {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
   seatId     String @db.Uuid
@@ -229,12 +229,12 @@ model SeatSibling {
 }
 
 model ReservationSetting {
-  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type       ReservationSettingType @default(reservation)
-  unit       TimeUnit
-  amount     Int                    @default(1)
-  created_at DateTime               @default(dbgenerated("now()"))
-  updated_at DateTime               @updatedAt
+  id        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      ReservationSettingType @default(reservation)
+  unit      TimeUnit
+  amount    Int                    @default(1)
+  createdAt DateTime               @default(dbgenerated("now()"))
+  updatedAt DateTime               @updatedAt
 }
 
 model Period {
