@@ -108,7 +108,13 @@ const main = async () => {
 
     if (seats && periods) {
       await client.seatPeriod.deleteMany();
-      await client.$transaction(seatPeriods.map((seatPeriod) => client.seatPeriod.create({ data: seatPeriod })));
+
+      // For Local
+      for (let i = 0; i < 20; i++) {
+        const curr = seatPeriods[i];
+        await client.$transaction([client.seatPeriod.create({ data: curr })]);
+        console.info(curr.startedAt, curr.seat);
+      }
     }
   } catch (error) {
     console.log(error);
