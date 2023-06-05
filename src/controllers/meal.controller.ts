@@ -1,11 +1,11 @@
-import { RequestHandler } from 'express';
-import { ApiResponse } from '../types/shared';
+import { Request, RequestHandler } from 'express';
+import { ApiResponse, AuthRequest } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
 
 class MealController {
-  public static getAllMealsHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static getAllMealsHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
       let meal = await prismaClient.meal.findMany({ take: 100 });
@@ -23,7 +23,7 @@ class MealController {
       }
     }
   };
-  public static getMealHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static getMealHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
       const { mealId } = req.params;
@@ -42,7 +42,7 @@ class MealController {
       }
     }
   };
-  public static createMealHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static createMealHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
       const { title, coverUrl, description, price, categoryIds, specialtyIds } = req.body;
@@ -71,7 +71,7 @@ class MealController {
       }
     }
   };
-  public static updateMealHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static updateMealHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
       const { mealId } = req.params;
@@ -89,7 +89,7 @@ class MealController {
       }
     }
   };
-  public static deleteMealHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static deleteMealHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
       const { mealId } = req.params;

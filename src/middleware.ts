@@ -60,6 +60,7 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       console.log('user', user);
 
       req.auth = user;
+      next();
     } catch (error) {
       errors.push(error as string);
     }

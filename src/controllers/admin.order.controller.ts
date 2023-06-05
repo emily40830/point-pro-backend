@@ -1,9 +1,9 @@
 import { RequestHandler } from 'express';
-import { ApiResponse } from '../types/shared';
+import { ApiResponse, AuthRequest } from '../types/shared';
 import { prismaClient as prisma } from '../helpers';
 
 class AdminOrderController {
-  public static getOrderHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static getOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     try {
       const { orderId } = req.params;
 
@@ -22,7 +22,7 @@ class AdminOrderController {
       res.status(500).json({ message: 'Internal server error', result: error?.toString() });
     }
   };
-  public static getAllOrdersHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static getAllOrdersHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     try {
       const orders = await prisma.orderLog.findMany({
         include: { orderMeals: true },
@@ -33,7 +33,7 @@ class AdminOrderController {
       res.status(500).json({ message: 'Internal server error', result: error?.toString() });
     }
   };
-  public static createOrderHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static createOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     try {
       const { orderId, status, type, orderMeals } = req.body;
 
@@ -53,7 +53,7 @@ class AdminOrderController {
     }
   };
 
-  public static updateOrderHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static updateOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     try {
       const { orderId } = req.params;
       const { status, parentOrderId, type, orderMeals } = req.body;
@@ -76,7 +76,7 @@ class AdminOrderController {
       res.status(500).json({ message: 'Internal server error', result: error?.toString() });
     }
   };
-  public static deleteOrderHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static deleteOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     try {
       const { orderId } = req.params;
 
