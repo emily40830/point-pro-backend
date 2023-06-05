@@ -83,7 +83,7 @@ class AuthController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: `invalid input:${error.message}`,
-          result: {},
+          result: null,
         });
       }
     }
@@ -96,7 +96,7 @@ class AuthController {
     ) {
       return res.status(400).send({
         message: 'this account or email cannot be used',
-        result: {},
+        result: null,
       });
     }
 
@@ -124,7 +124,7 @@ class AuthController {
       if (error instanceof Error) {
         return res.status(400).send({
           message: `invalid input:${error.message}`,
-          result: {},
+          result: null,
         });
       }
     }
