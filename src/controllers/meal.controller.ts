@@ -8,7 +8,7 @@ class MealController {
   public static getAllMealsHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
-      let meal = await prismaClient.meal.findMany({ take: 100 });
+      let meal = await prismaClient.meal.findMany({ take: 100, include: { categories: true, specialties: true } });
 
       return res.status(200).send({
         message: 'successfully get meals',
@@ -27,7 +27,10 @@ class MealController {
     // validate input
     try {
       const { mealId } = req.params;
-      let meal = await prismaClient.meal.findMany({ where: { id: mealId } });
+      let meal = await prismaClient.meal.findMany({
+        where: { id: mealId },
+        include: { categories: true, specialties: true },
+      });
 
       return res.status(200).send({
         message: 'successfully get a meals',
