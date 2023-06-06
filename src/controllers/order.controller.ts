@@ -78,6 +78,10 @@ class OrderController {
   };
 
   public static getOrdersHandler: RequestHandler = async (req, res: ApiResponse, next) => {
+    const userRole = req.auth.role;
+    if ('reservationLogId' in req.auth) {
+      // do something
+    }
     // Validation
     try {
       // [REFACTOR]
