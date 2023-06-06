@@ -4,6 +4,7 @@
     "price": 180,
     "coverUrl": "https://i.imgur.com/SsrcH2i.jpeg",
     "description": "現烤現做需要25分左右",
+    "isPopular": true,
     "categories": ["火烤類"],
     "specialties": []
   },
@@ -20,6 +21,7 @@
     "price": 180,
     "coverUrl": "https://i.imgur.com/sLQsZc3.jpeg",
     "description": "現烤現做需要25分左右",
+    "isPopular": true,
     "categories": ["火烤類"],
     "specialties": []
   },
@@ -36,6 +38,7 @@
     "price": 220,
     "coverUrl": "https://i.imgur.com/v7BHxN2.jpeg",
     "description": "現烤現做需要25分左右",
+    "isPopular": true,
     "categories": ["火烤類"],
     "specialties": []
   },
@@ -44,6 +47,7 @@
     "price": 270,
     "coverUrl": "https://i.imgur.com/10Tk9Xh.jpeg",
     "description": "現烤現做需要25分左右\n肉品原產地：西班牙豬肉",
+    "isPopular": true,
     "categories": ["火烤類"],
     "specialties": []
   },
@@ -68,6 +72,7 @@
     "price": 320,
     "coverUrl": "https://i.imgur.com/9H7L6k0.jpeg",
     "description": "約250g",
+    "isPopular": true,
     "categories": ["火烤類"],
     "specialties": []
   },
@@ -276,6 +281,7 @@
     "price": 190,
     "coverUrl": "https://i.imgur.com/DwbNIYR.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["熱炒肉類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -284,6 +290,7 @@
     "price": 195,
     "coverUrl": "https://i.imgur.com/PE7VeeR.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["熱炒肉類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -300,6 +307,7 @@
     "price": 190,
     "coverUrl": "https://i.imgur.com/akhO10q.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["熱炒肉類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -316,6 +324,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/diMvg9E.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["熱炒什錦類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -372,6 +381,7 @@
     "price": 195,
     "coverUrl": "https://i.imgur.com/lIWi4t9.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["熱炒什錦類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -420,6 +430,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/1u1A0Xp.jpeg",
     "description": "肉品原產地：歐洲豬肉",
+    "isPopular": true,
     "categories": ["熱炒什錦類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -436,6 +447,7 @@
     "price": 280,
     "coverUrl": "https://i.imgur.com/MFOPFYI.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["熱炒什錦類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -484,6 +496,7 @@
     "price": 380,
     "coverUrl": "https://i.imgur.com/a03W4Dz.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["熱炒海鮮類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -500,6 +513,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/guhrBeS.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["熱炒海鮮類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -556,6 +570,7 @@
     "price": 300,
     "coverUrl": "https://i.imgur.com/VUzcuK1.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["熱炒海鮮類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -588,6 +603,7 @@
     "price": 450,
     "coverUrl": "https://i.imgur.com/gsZ329X.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["熱炒海鮮類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -604,6 +620,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/IjGyewz.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["酥炸類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -628,6 +645,7 @@
     "price": 290,
     "coverUrl": "https://i.imgur.com/1l2Z5wT.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["酥炸類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -700,6 +718,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/ruzfLp7.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["三杯類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -708,6 +727,7 @@
     "price": 280,
     "coverUrl": "https://i.imgur.com/qIhN7Hx.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["三杯類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -740,6 +760,7 @@
     "price": 280,
     "coverUrl": "https://i.imgur.com/pcfE1TZ.jpeg",
     "description": "肉品原產地：澳洲",
+    "isPopular": true,
     "categories": ["鐵板類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -772,6 +793,7 @@
     "price": 250,
     "coverUrl": "https://i.imgur.com/nWauxcd.jpeg",
     "description": "肉品原產地：歐洲豬肉",
+    "isPopular": true,
     "categories": ["煲類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -796,6 +818,7 @@
     "price": 300,
     "coverUrl": "https://i.imgur.com/BrOBoaf.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["煲類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -804,6 +827,7 @@
     "price": 135,
     "coverUrl": "https://i.imgur.com/cn6icJ3.jpeg",
     "description": "豬脂(油)原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["青菜類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -852,6 +876,7 @@
     "price": 160,
     "coverUrl": "https://i.imgur.com/Y6d0IJA.jpeg",
     "description": "肉品原產地：臺灣豬肉",
+    "isPopular": true,
     "categories": ["青菜類"],
     "specialties": ["辣度", "特別調整"]
   },
@@ -924,6 +949,7 @@
     "price": 355,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["湯類"],
     "specialties": []
   },
@@ -932,6 +958,7 @@
     "price": 185,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["湯類"],
     "specialties": []
   },
@@ -940,6 +967,7 @@
     "price": 100,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
+    "isPopular": true,
     "categories": ["湯類"],
     "specialties": []
   },
