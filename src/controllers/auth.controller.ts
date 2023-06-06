@@ -1,10 +1,17 @@
 import { RequestHandler } from 'express';
-import { ApiResponse } from '../types/shared';
+import { ApiResponse, AuthRequest } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
 
 class AuthController {
+  public static decodeTokenHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
+    return res.status(200).send({
+      message: 'success',
+      result: req.auth,
+    });
+  };
+
   public static generateTokenHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     const inputSchema = object({
@@ -26,7 +33,7 @@ class AuthController {
 
     const reservation = await prismaClient.reservationSeat.findFirst({
       where: {
-        id: reservationLogId,
+        reservationLogId,
       },
       include: {
         reservationLog: true,
@@ -54,7 +61,7 @@ class AuthController {
       const periodStartTime = seatAndPeriod?.startedAt;
       const periodEndTime = seatAndPeriod?.endedAt;
 
-      const token = AuthService.signJWT({
+      const token = await AuthService.signJWT({
         seatNo,
         reservationType,
         startTime,

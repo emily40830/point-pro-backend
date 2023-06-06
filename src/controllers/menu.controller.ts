@@ -5,13 +5,19 @@ import { prismaClient } from '../helpers';
 class MenuController {
   public static getMenuHandler: RequestHandler = async (req, res: ApiResponse, next) => {
     try {
-      // [TODO: token validate?]
       const menu = await prismaClient.category.findMany({
         select: {
           id: true,
           title: true,
           position: true,
           meals: {
+            where: {
+              meal: {
+                publishedAt: {
+                  lte: new Date(),
+                },
+              },
+            },
             select: {
               meal: {
                 select: {
@@ -21,6 +27,7 @@ class MenuController {
                   description: true,
                   price: true,
                   position: true,
+                  isPopular: true,
                   categories: {
                     select: {
                       category: {
@@ -39,7 +46,17 @@ class MenuController {
                           id: true,
                           title: true,
                           type: true,
-                          items: true,
+                          items: {
+                            select: {
+                              specialtyItem: {
+                                select: {
+                                  id: true,
+                                  title: true,
+                                  price: true,
+                                },
+                              },
+                            },
+                          },
                         },
                       },
                     },
@@ -56,7 +73,10 @@ class MenuController {
         meals: category.meals.map(({ meal }) => ({
           ...meal,
           categories: meal.categories.map(({ category }) => ({ ...category })),
-          specialties: meal.specialties.map(({ specialty }) => ({ ...specialty })),
+          specialties: meal.specialties.map(({ specialty }) => ({
+            ...specialty,
+            items: specialty.items.map((item) => ({ ...item.specialtyItem })),
+          })),
         })),
       }));
 
