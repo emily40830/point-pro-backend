@@ -3,7 +3,7 @@ import { Logger } from '../helpers/utils';
 import { ApiResponse } from '../types/shared';
 import authRouter from './auth.router';
 import orderRouter from './order.router';
-import { mealsRouter, mealRouter } from './meal.router';
+import mealRouter from './meal.router';
 import categoryRouter from './category.router';
 import specialtyRouter from './specialty.router';
 import adminOrderRouter from './adminOrder.router';
@@ -27,7 +27,6 @@ apiRouter.use((error: Error, req: Request, res: ApiResponse, next: NextFunction)
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/order', orderRouter);
 apiRouter.use('/meal', mealRouter);
-apiRouter.use('/meals', mealsRouter);
 apiRouter.use('/category', categoryRouter);
 apiRouter.use('/specialty', specialtyRouter);
 apiRouter.use('/admin', adminOrderRouter);

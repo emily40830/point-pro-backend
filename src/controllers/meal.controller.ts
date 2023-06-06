@@ -3,7 +3,13 @@ import { ApiResponse, AuthRequest } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
+import { isEmpty } from 'ramda';
 
+const mealResponseFormat = (meal: any) => ({
+  ...meal,
+  categories: meal.categories.map(({ categoryId }: { categoryId: string }) => categoryId),
+  specialties: meal.specialties.map(({ specialtyId }: { specialtyId: string }) => specialtyId),
+});
 class MealController {
   public static getAllMealsHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
@@ -27,15 +33,22 @@ class MealController {
     // validate input
     try {
       const { mealId } = req.params;
-      let meal = await prismaClient.meal.findMany({
+      let meal = await prismaClient.meal.findUnique({
         where: { id: mealId },
         include: { categories: true, specialties: true },
       });
 
-      return res.status(200).send({
-        message: 'successfully get a meals',
-        result: meal,
-      });
+      if (isEmpty(meal) || meal === null) {
+        res.status(404).send({
+          message: `${mealId} doesn't exist`,
+          result: null,
+        });
+      } else {
+        return res.status(200).send({
+          message: 'successfully get a meals',
+          result: mealResponseFormat(meal),
+        });
+      }
     } catch (error) {
       if (error instanceof Error) {
         return res.status(400).send({
@@ -48,7 +61,7 @@ class MealController {
   public static createMealHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     // validate input
     try {
-      const { title, coverUrl, description, price, categoryIds, specialtyIds } = req.body;
+      const { title, coverUrl, description, price, categories, specialties } = req.body;
 
       const meal = await prismaClient.meal.create({
         data: {
@@ -56,11 +69,10 @@ class MealController {
           coverUrl,
           description,
           price,
-          categories: { create: categoryIds?.map((id: string) => ({ connect: { id } })) },
-          specialties: { create: specialtyIds?.map((id: string) => ({ connect: { id } })) },
+          categories: { create: categories?.map((id: string) => ({ connect: { id } })) },
+          specialties: { create: specialties?.map((id: string) => ({ connect: { id } })) },
         },
       });
-
       return res.status(201).send({
         message: 'successfully create a meal',
         result: meal,
@@ -78,11 +90,29 @@ class MealController {
     // validate input
     try {
       const { mealId } = req.params;
-      const meal = await prismaClient.meal.update({ where: { id: mealId }, data: req.body });
-      return res.status(200).send({
-        message: 'successfully update a meal',
-        result: meal,
+      const { title, coverUrl, description, price, categories, specialties } = req.body;
+      const meal = await prismaClient.meal.update({
+        where: { id: mealId },
+        data: {
+          title,
+          coverUrl,
+          description,
+          price,
+          categories: { connectOrCreate: categories?.map((id: string) => ({ where: { id }, create: { id } })) },
+          specialties: { connectOrCreate: specialties?.map((id: string) => ({ where: { id }, create: { id } })) },
+        },
       });
+      if (isEmpty(meal) || meal === null) {
+        res.status(404).send({
+          message: `${mealId} doesn't exist`,
+          result: null,
+        });
+      } else {
+        return res.status(200).send({
+          message: 'successfully update a meal',
+          result: mealResponseFormat(meal),
+        });
+      }
     } catch (error) {
       if (error instanceof Error) {
         return res.status(400).send({
