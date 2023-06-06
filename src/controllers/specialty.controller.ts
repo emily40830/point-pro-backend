@@ -3,23 +3,75 @@ import { ApiResponse } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
+import { includes, isEmpty } from 'ramda';
+import { Prisma, SpecialtyItem } from '@prisma/client';
 
+const specialtyResponseFormat = (specialty: any) => ({
+  ...specialty,
+  items: specialty.items.map(({ specialtyItem }: any) => specialtyItem),
+});
 class SpecialtyController {
-  public static getSpecialtyHandler: RequestHandler = async (req, res: ApiResponse) => {
+  public static getSpecialtiesHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     try {
-      const { specialtyId } = req.params;
-      let specialty = await prismaClient.specialty.findMany({ where: { id: specialtyId } });
+      let specialty = await prismaClient.specialty.findMany({ include: { items: true } });
 
       return res.status(200).send({
-        message: 'successfully get a specialties',
+        message: 'successfully get specialties',
         result: specialty,
       });
     } catch (error) {
       if (error instanceof Error) {
         return res.status(400).send({
           message: error.message,
-          result: {},
+          result: null,
+        });
+      }
+    }
+  };
+  public static getSpecialtyHandler: RequestHandler = async (req, res: ApiResponse) => {
+    // validate input
+    try {
+      const { specialtyId } = req.params;
+      let specialty = await prismaClient.specialty.findUnique({
+        where: { id: specialtyId },
+        include: { items: { include: { specialtyItem: true } } },
+      });
+
+      if (isEmpty(specialty) || specialty === null) {
+        res.status(404).send({
+          message: `${specialtyId} doesn't exist`,
+          result: null,
+        });
+      } else {
+        return res.status(200).send({
+          message: 'successfully get a specialties',
+          result: specialtyResponseFormat(specialty),
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: null,
+        });
+      }
+    }
+  };
+  public static getSpecialtyItemsHandler: RequestHandler = async (req, res: ApiResponse) => {
+    // validate input
+    try {
+      let specialtyItems = await prismaClient.specialtyItem.findMany();
+
+      return res.status(200).send({
+        message: 'successfully get a specialty items',
+        result: specialtyItems,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: null,
         });
       }
     }
@@ -27,14 +79,28 @@ class SpecialtyController {
   public static createSpecialtyHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     try {
-      const { title, type, specialtyItems } = req.body;
+      const { title, type, items } = req.body;
+      let a: Prisma.SpecialtyCreateInput;
 
       const specialty = await prismaClient.specialty.create({
         data: {
           title,
           type,
           items: {
-            connect: specialtyItems,
+            create: items.map((e: SpecialtyItem) =>
+              e.id
+                ? {
+                    specialtyItem: {
+                      create: {
+                        title: e.title,
+                        price: e.price,
+                      },
+                    },
+                  }
+                : {
+                    specialtyItemId: e.id,
+                  },
+            ),
           },
         },
       });
@@ -57,12 +123,20 @@ class SpecialtyController {
 
     try {
       const { specialtyId } = req.params;
-      const specialty = await prismaClient.specialty.update({ where: { id: specialtyId }, data: req.body });
+      const { id, title, items } = req.body;
+      const specialty = await prismaClient.specialty.update({ where: { id: specialtyId }, data: { id, title, items } });
 
-      return res.status(200).send({
-        message: 'successfully update a specialty',
-        result: specialty,
-      });
+      if (isEmpty(specialty) || specialty === null) {
+        res.status(404).send({
+          message: `${specialtyId} doesn't exist`,
+          result: null,
+        });
+      } else {
+        return res.status(200).send({
+          message: 'successfully update a specialty',
+          result: specialty,
+        });
+      }
     } catch (error) {
       if (error instanceof Error) {
         return res.status(400).send({

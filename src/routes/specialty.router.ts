@@ -3,7 +3,8 @@ import { SpecialtyController } from '../controllers';
 
 const specialtyRouter = Router();
 
-specialtyRouter.get('/', SpecialtyController.getSpecialtyHandler);
+specialtyRouter.get('/', SpecialtyController.getSpecialtiesHandler);
+specialtyRouter.get('/specialtyItems', SpecialtyController.getSpecialtyItemsHandler);
 specialtyRouter.get('/:specialtyId', SpecialtyController.getSpecialtyHandler);
 specialtyRouter.post('/', SpecialtyController.createSpecialtyHandler);
 specialtyRouter.patch('/:specialtyId', SpecialtyController.updateSpecialtyHandler);
