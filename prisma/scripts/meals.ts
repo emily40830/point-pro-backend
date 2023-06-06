@@ -1,5 +1,6 @@
 import { Prisma, SpecialtyType } from '@prisma/client';
 import { meals, specialties, categories } from '../data';
+import { dayjs } from '../../src/helpers/dayjs-util';
 import * as uuid from 'uuid';
 
 export const getSpecialtyItems = (): Prisma.SpecialtyItemCreateInput[] => {
@@ -65,6 +66,8 @@ export const getMeals = (): Prisma.MealCreateInput[] => {
     position: index,
     description: meal.description,
     coverUrl: meal.coverUrl,
+    isPopular: !!meal.isPopular,
+    publishedAt: dayjs().startOf('year').toDate(),
     categories: {
       create: meal.categories.map((category) => ({
         category: {
