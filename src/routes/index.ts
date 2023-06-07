@@ -4,7 +4,10 @@ import { ApiResponse } from '../types/shared';
 import authRouter from './auth.router';
 import orderRouter from './order.router';
 import mealRouter from './meal.router';
+import categoryRouter from './category.router';
+import specialtyRouter from './specialty.router';
 import adminOrderRouter from './adminOrder.router';
+import menuRouter from './menu.router';
 import paymentRouter from './payment.router';
 
 const apiRouter = Router();
@@ -25,7 +28,10 @@ apiRouter.use((error: Error, req: Request, res: ApiResponse, next: NextFunction)
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/order', orderRouter);
 apiRouter.use('/meal', mealRouter);
+apiRouter.use('/category', categoryRouter);
+apiRouter.use('/specialty', specialtyRouter);
 apiRouter.use('/admin', adminOrderRouter);
 apiRouter.use('/payment', paymentRouter);
+apiRouter.use('/menu', menuRouter);
 
 export default apiRouter;
