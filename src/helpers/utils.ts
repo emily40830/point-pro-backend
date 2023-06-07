@@ -1,6 +1,8 @@
 import { ResponseError } from '../types/shared';
 import { dayjs } from './dayjs-util';
 
+export const secret = process.env.POINT_PRO_SECRET || 'point-proo';
+
 export const LogLevel = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const;
 export class Logger {
   static fatal(message: string | Error) {

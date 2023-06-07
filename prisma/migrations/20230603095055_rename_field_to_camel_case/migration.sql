@@ -1,7 +1,9 @@
 /*
   Warnings:
 
-  - A unique constraint covering the columns `[title]` on the table `SpecialtyItem` will be added. If there are existing duplicate values, this will fail.
+  - You are about to drop the column `created_at` on the `OrderLog` table. All the data in the column will be lost.
+  - You are about to drop the column `updated_at` on the `OrderLog` table. All the data in the column will be lost.
+  - Added the required column `updatedAt` to the `OrderLog` table without a default value. This is not possible if the table is not empty.
 
 */
 -- AlterTable
@@ -17,7 +19,13 @@ ALTER TABLE "Meal" ALTER COLUMN "createdAt" SET DEFAULT now();
 ALTER TABLE "Member" ALTER COLUMN "createdAt" SET DEFAULT now();
 
 -- AlterTable
-ALTER TABLE "OrderLog" ALTER COLUMN "created_at" SET DEFAULT now();
+ALTER TABLE "OrderLog" DROP COLUMN "created_at",
+DROP COLUMN "updated_at",
+ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT now(),
+ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL;
+
+-- AlterTable
+ALTER TABLE "OrderMeal" ALTER COLUMN "servedAmount" SET DEFAULT 0;
 
 -- AlterTable
 ALTER TABLE "PaymentLog" ALTER COLUMN "created_at" SET DEFAULT now();
@@ -46,18 +54,16 @@ ALTER COLUMN "endedAt" SET DEFAULT now(),
 ALTER COLUMN "createdAt" SET DEFAULT now();
 
 -- AlterTable
-ALTER TABLE "SeatSlibing" ALTER COLUMN "created_at" SET DEFAULT now();
+ALTER TABLE "SeatSibling" ALTER COLUMN "created_at" SET DEFAULT now();
 
 -- AlterTable
 ALTER TABLE "SpecialtiesOnMeals" ALTER COLUMN "createdAt" SET DEFAULT now();
 
 -- AlterTable
-ALTER TABLE "Specialty" ALTER COLUMN "title" SET DATA TYPE VARCHAR(50),
-ALTER COLUMN "createdAt" SET DEFAULT now();
+ALTER TABLE "SpecialtiesOnSpecialtyItems" ALTER COLUMN "createdAt" SET DEFAULT now();
 
 -- AlterTable
-ALTER TABLE "SpecialtyItem" ALTER COLUMN "title" SET DATA TYPE VARCHAR(50),
-ALTER COLUMN "createdAt" SET DEFAULT now();
+ALTER TABLE "Specialty" ALTER COLUMN "createdAt" SET DEFAULT now();
 
--- CreateIndex
-CREATE UNIQUE INDEX "SpecialtyItem_title_key" ON "SpecialtyItem"("title");
+-- AlterTable
+ALTER TABLE "SpecialtyItem" ALTER COLUMN "createdAt" SET DEFAULT now();

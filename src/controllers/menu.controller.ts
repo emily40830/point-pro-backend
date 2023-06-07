@@ -5,28 +5,52 @@ import { prismaClient } from '../helpers';
 class MenuController {
   public static getMenuHandler: RequestHandler = async (req, res: ApiResponse, next) => {
     try {
-      // [TODO: token validate?]
-      const menu = await prismaClient.categoriesOnMeals.findMany({
+      const menu = await prismaClient.category.findMany({
         select: {
-          category: {
+          id: true,
+          title: true,
+          position: true,
+          meals: {
+            where: {
+              meal: {
+                publishedAt: {
+                  lte: new Date(),
+                },
+              },
+            },
             select: {
-              title: true,
-              meals: {
+              meal: {
                 select: {
-                  meal: {
+                  id: true,
+                  title: true,
+                  coverUrl: true,
+                  description: true,
+                  price: true,
+                  position: true,
+                  isPopular: true,
+                  categories: {
                     select: {
-                      title: true,
-                      coverUrl: true,
-                      description: true,
-                      price: true,
-                      specialties: {
+                      category: {
                         select: {
-                          specialty: {
+                          id: true,
+                          title: true,
+                          position: true,
+                        },
+                      },
+                    },
+                  },
+                  specialties: {
+                    select: {
+                      specialty: {
+                        select: {
+                          id: true,
+                          title: true,
+                          type: true,
+                          items: {
                             select: {
-                              title: true,
-                              type: true,
-                              specialtyItems: {
+                              specialtyItem: {
                                 select: {
+                                  id: true,
                                   title: true,
                                   price: true,
                                 },
@@ -44,11 +68,15 @@ class MenuController {
         },
       });
 
-      const result = menu.map(({ category }) => ({
+      const result = menu.map((category) => ({
         ...category,
         meals: category.meals.map(({ meal }) => ({
           ...meal,
-          specialties: meal.specialties.map(({ specialty }) => ({ ...specialty })),
+          categories: meal.categories.map(({ category }) => ({ ...category })),
+          specialties: meal.specialties.map(({ specialty }) => ({
+            ...specialty,
+            items: specialty.items.map((item) => ({ ...item.specialtyItem })),
+          })),
         })),
       }));
 

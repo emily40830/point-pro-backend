@@ -67,15 +67,16 @@ model Member {
 }
 
 model Meal {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title        String    @db.VarChar(100)
-  coverUrl     String?   @db.Text
-  description  String?   @db.Text
-  price        Int       @default(0) @db.Integer
-  position     Int       @default(0) @db.Integer
-  published_at DateTime? @db.Timestamptz()
-  createdAt    DateTime  @default(dbgenerated("now()"))
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String    @db.VarChar(100)
+  coverUrl    String?   @db.Text
+  description String?   @db.Text
+  price       Int       @default(0) @db.Integer
+  position    Int       @default(0) @db.Integer
+  isPopular   Boolean   @default(false)
+  publishedAt DateTime? @db.Timestamptz()
+  createdAt   DateTime  @default(dbgenerated("now()"))
+  updatedAt   DateTime  @updatedAt
 
   // relation
   categories  CategoriesOnMeals[]
@@ -114,8 +115,8 @@ model Specialty {
   updatedAt DateTime      @updatedAt
 
   // relation
-  specialtyItems SpecialtyItem[]
-  meals          SpecialtiesOnMeals[]
+  items SpecialtiesOnSpecialtyItems[]
+  meals SpecialtiesOnMeals[]
 }
 
 model SpecialtyItem {
@@ -126,8 +127,7 @@ model SpecialtyItem {
   updatedAt DateTime @updatedAt
 
   // relation
-  specialtyId String    @db.Uuid
-  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  fromSpecialties SpecialtiesOnSpecialtyItems[]
 }
 
 model SpecialtiesOnMeals {
@@ -143,12 +143,25 @@ model SpecialtiesOnMeals {
   meal        Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
 }
 
+model SpecialtiesOnSpecialtyItems {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  position  Int?     @default(0)
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
+
+  // relation
+  specialtyId     String        @db.Uuid
+  specialty       Specialty     @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  specialtyItemId String        @db.Uuid
+  specialtyItem   SpecialtyItem @relation(fields: [specialtyItemId], references: [id], onDelete: Cascade)
+}
+
 model OrderLog {
-  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status     OrderStatus @default(PENDING)
-  type       OrderType   @default(DineIn)
-  created_at DateTime    @default(dbgenerated("now()"))
-  updated_at DateTime    @updatedAt
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status    OrderStatus @default(PENDING)
+  type      OrderType   @default(DineIn)
+  createdAt DateTime    @default(dbgenerated("now()"))
+  updatedAt DateTime    @updatedAt
 
   // relation
   parentOrderId    String?         @db.Uuid
@@ -166,7 +179,7 @@ model OrderMeal {
   price        Int
   mealDetails  Json?
   amount       Int
-  servedAmount Int
+  servedAmount Int     @default(0)
 
   // relation
   orderId String   @db.Uuid
@@ -176,12 +189,12 @@ model OrderMeal {
 }
 
 model PaymentLog {
-  payment_no String   @id
-  price      Int
-  gateway    String
-  status     String
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  paymentNo String   @id
+  price     Int
+  gateway   String
+  status    String
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
   orderId String   @db.Uuid
@@ -189,40 +202,40 @@ model PaymentLog {
 }
 
 model Seat {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  prefix     String   @db.VarChar(2)
-  seatNo     Int      @db.Integer
-  amount     Int      @default(2) @db.Integer
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prefix    String   @db.VarChar(2)
+  no        Int      @db.Integer
+  amount    Int      @default(2) @db.Integer
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
-  slibings     SeatSlibing[] @relation(name: "Seat")
-  nextSlibings SeatSlibing[] @relation(name: "nextSeat")
+  siblings     SeatSibling[] @relation(name: "Seat")
+  nextSiblings SeatSibling[] @relation(name: "nextSeat")
   periods      SeatPeriod[]
 
-  @@unique([prefix, seatNo])
+  @@unique([prefix, no], name: "seatNo")
 }
 
-model SeatSlibing {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at DateTime @default(dbgenerated("now()"))
-  updated_at DateTime @updatedAt
+model SeatSibling {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(dbgenerated("now()"))
+  updatedAt DateTime @updatedAt
 
   // relation
   seatId     String @db.Uuid
-  seat       Seat   @relation(name: "Seat", fields: [seatId], references: [id])
+  seat       Seat   @relation(name: "Seat", fields: [seatId], references: [id], onDelete: Cascade)
   nextSeatId String @db.Uuid
-  nextSeat   Seat   @relation("nextSeat", fields: [nextSeatId], references: [id])
+  nextSeat   Seat   @relation("nextSeat", fields: [nextSeatId], references: [id], onDelete: Cascade)
 }
 
 model ReservationSetting {
-  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type       ReservationSettingType @default(reservation)
-  unit       TimeUnit
-  amount     Int                    @default(1)
-  created_at DateTime               @default(dbgenerated("now()"))
-  updated_at DateTime               @updatedAt
+  id        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      ReservationSettingType @default(reservation)
+  unit      TimeUnit
+  amount    Int                    @default(1)
+  createdAt DateTime               @default(dbgenerated("now()"))
+  updatedAt DateTime               @updatedAt
 }
 
 model Period {
@@ -249,9 +262,9 @@ model SeatPeriod {
 
   // relation
   seatId          String           @db.Uuid
-  seat            Seat             @relation(fields: [seatId], references: [id])
+  seat            Seat             @relation(fields: [seatId], references: [id], onDelete: Cascade)
   periodId        String           @db.Uuid
-  period          Period           @relation(fields: [periodId], references: [id])
+  period          Period           @relation(fields: [periodId], references: [id], onDelete: Cascade)
   reservationSeat ReservationSeat?
 }
 
@@ -277,7 +290,7 @@ model ReservationSeat {
 
   // relation
   reservationLogId String?         @unique @db.Uuid
-  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id])
+  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
   seatPeriodId     String?         @unique @db.Uuid
-  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id])
+  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id], onDelete: Cascade)
 }

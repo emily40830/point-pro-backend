@@ -91,15 +91,25 @@ export class AuthService {
       return throwError({ message: (error as Error).message });
     }
   };
+
   static signJWT = async (
-    payload: {
-      sub: string;
-      memberId?: string;
-      name?: string;
-      account?: string;
-      email?: string;
-      role: string;
-    },
+    payload:
+      | {
+          sub: string;
+          memberId?: string;
+          name?: string;
+          account?: string;
+          email?: string;
+          role: string;
+        }
+      | {
+          reservationLogId: string;
+          reservationType?: string;
+          startTime: Date;
+          seatNo: string;
+          periodStartTime?: Date;
+          periodEndTime?: Date;
+        },
     expiresIn = '1 day',
   ) => {
     if (!process.env.POINT_PRO_SECRET) {

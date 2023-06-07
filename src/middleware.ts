@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { NextFunction, Request } from 'express';
 import { ApiResponse, AuthRequest } from './types/shared';
-import { object, string, number } from 'yup';
+import { object, string, number, date } from 'yup';
 import session from 'express-session';
 
-const verifySchema = object({
+const verifyAdminSchema = object({
   sub: string().required(),
   iat: number().required(),
   exp: number().required(),
@@ -13,6 +13,17 @@ const verifySchema = object({
   email: string().optional(),
   role: string().required(),
 });
+
+const verifyReservationSchema = object({
+  reservationLogId: string().required(),
+  reservationType: string().optional(),
+  startTime: date().required(),
+  seatNo: string().required(),
+  periodStartTime: date().optional(),
+  periodEndTime: date().optional(),
+});
+
+const verifyUserSchema = verifyAdminSchema || verifyReservationSchema;
 
 const secret = process.env.POINT_PRO_SECRET || 'point-proo';
 
@@ -42,16 +53,36 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
     });
   } else {
     const decoded = jwt.verify(token, secret);
+    const errors = [];
     try {
-      verifySchema.validateSync(decoded);
-      const user = verifySchema.cast(decoded);
+      verifyUserSchema.validateSync(decoded);
+      const user = verifyUserSchema.cast(decoded);
       console.log('user', user);
 
-      req.user = user;
+      req.auth = user;
       next();
     } catch (error) {
+      errors.push(error as string);
+    }
+
+    if (!errors) {
+      next();
+    }
+
+    try {
+      verifyReservationSchema.validateSync(decoded);
+      const reservation = verifyReservationSchema.cast(decoded);
+      console.log('reservation', reservation);
+
+      req.auth = { ...reservation, role: 'USER' };
+      next();
+    } catch (error) {
+      errors.push(error as string);
+    }
+
+    if (errors.length > 1) {
       res.status(403).send({
-        message: error as string,
+        message: errors.join('; '),
         result: null,
       });
     }
@@ -61,4 +92,3 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
 export const errorMiddleware = (error: Error, req: Request, res: ApiResponse, next: NextFunction) => {
   return res.status(500).send({ message: `${error.name} ${error.message}`, result: null });
 };
-

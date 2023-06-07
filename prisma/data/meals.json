@@ -4,9 +4,8 @@
     "price": 180,
     "coverUrl": "https://i.imgur.com/SsrcH2i.jpeg",
     "description": "現烤現做需要25分左右",
-    "categories": [
-      "火烤類"
-    ],
+    "isPopular": true,
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -14,9 +13,7 @@
     "price": 180,
     "coverUrl": "https://i.imgur.com/FDrlO96.jpeg",
     "description": "現烤現做需要25分左右",
-    "categories": [
-      "火烤類"
-    ],
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -24,9 +21,8 @@
     "price": 180,
     "coverUrl": "https://i.imgur.com/sLQsZc3.jpeg",
     "description": "現烤現做需要25分左右",
-    "categories": [
-      "火烤類"
-    ],
+    "isPopular": true,
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -34,9 +30,7 @@
     "price": 210,
     "coverUrl": "https://i.imgur.com/VzfQT5q.jpeg",
     "description": "現烤現做需要25分左右\n肉品原產地：臺灣豬肉",
-    "categories": [
-      "火烤類"
-    ],
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -44,9 +38,8 @@
     "price": 220,
     "coverUrl": "https://i.imgur.com/v7BHxN2.jpeg",
     "description": "現烤現做需要25分左右",
-    "categories": [
-      "火烤類"
-    ],
+    "isPopular": true,
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -54,9 +47,8 @@
     "price": 270,
     "coverUrl": "https://i.imgur.com/10Tk9Xh.jpeg",
     "description": "現烤現做需要25分左右\n肉品原產地：西班牙豬肉",
-    "categories": [
-      "火烤類"
-    ],
+    "isPopular": true,
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -64,9 +56,7 @@
     "price": 230,
     "coverUrl": "https://i.imgur.com/co8cbdi.jpeg",
     "description": "現烤現做需要25分左右",
-    "categories": [
-      "火烤類"
-    ],
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -74,9 +64,7 @@
     "price": 520,
     "coverUrl": "https://i.imgur.com/eGVnVm2.jpeg",
     "description": "",
-    "categories": [
-      "火烤類"
-    ],
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -84,9 +72,8 @@
     "price": 320,
     "coverUrl": "https://i.imgur.com/9H7L6k0.jpeg",
     "description": "約250g",
-    "categories": [
-      "火烤類"
-    ],
+    "isPopular": true,
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -94,9 +81,7 @@
     "price": 350,
     "coverUrl": "https://i.imgur.com/tlDsEVz.jpeg",
     "description": "",
-    "categories": [
-      "火烤類"
-    ],
+    "categories": ["火烤類"],
     "specialties": []
   },
   {
@@ -104,9 +89,7 @@
     "price": 1100,
     "coverUrl": "https://i.imgur.com/8cU1c2M.jpeg",
     "description": "使用產銷履歷鱸魚\n此餐點需要25分以上",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -114,9 +97,7 @@
     "price": 600,
     "coverUrl": "https://i.imgur.com/8cU1c2M.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -124,9 +105,7 @@
     "price": 800,
     "coverUrl": "https://i.imgur.com/43rzL41.jpeg",
     "description": "使用產銷履歷雞肉\n生綠竹筍為季節限定",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -134,9 +113,7 @@
     "price": 480,
     "coverUrl": "https://i.imgur.com/43rzL41.jpeg",
     "description": "使用產銷履歷雞肉\n生綠竹筍為季節限定",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -144,9 +121,7 @@
     "price": 1100,
     "coverUrl": "https://i.imgur.com/RJxF0iI.jpeg",
     "description": "",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -154,9 +129,7 @@
     "price": 600,
     "coverUrl": "https://i.imgur.com/RJxF0iI.jpeg",
     "description": "",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -164,9 +137,7 @@
     "price": 800,
     "coverUrl": "https://i.imgur.com/2MqFg8g.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -174,9 +145,7 @@
     "price": 480,
     "coverUrl": "https://i.imgur.com/2MqFg8g.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -184,9 +153,7 @@
     "price": 800,
     "coverUrl": "https://i.imgur.com/ohplXoI.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -194,9 +161,7 @@
     "price": 480,
     "coverUrl": "https://i.imgur.com/ohplXoI.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -204,9 +169,7 @@
     "price": 980,
     "coverUrl": "https://i.imgur.com/6Zj8MPZ.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -214,9 +177,7 @@
     "price": 565,
     "coverUrl": "https://i.imgur.com/6Zj8MPZ.jpeg",
     "description": "使用產銷履歷雞肉",
-    "categories": [
-      "火鍋類"
-    ],
+    "categories": ["火鍋類"],
     "specialties": []
   },
   {
@@ -224,1148 +185,723 @@
     "price": 110,
     "coverUrl": "https://i.imgur.com/RwHVLzC.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "肉絲炒麵",
     "price": 110,
     "coverUrl": "https://i.imgur.com/NM9o2cv.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "牛肉炒飯",
     "price": 135,
     "coverUrl": "https://i.imgur.com/4aUb6UJ.jpeg",
     "description": "",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "牛肉炒麵",
     "price": 135,
     "coverUrl": "https://i.imgur.com/htGhlxb.jpeg",
     "description": "",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "羊肉炒飯",
     "price": 135,
     "coverUrl": "https://i.imgur.com/BbJgd8I.jpeg",
     "description": "",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "羊肉炒麵",
     "price": 135,
     "coverUrl": "https://i.imgur.com/9IIJkwm.jpeg",
     "description": "",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "蝦仁炒飯",
     "price": 150,
     "coverUrl": "https://i.imgur.com/GVtTeGY.jpeg",
     "description": "使用產銷履歷白蝦",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "蝦仁炒麵",
     "price": 150,
     "coverUrl": "https://i.imgur.com/ImZS2At.jpeg",
     "description": "使用產銷履歷白蝦",
-    "categories": [
-      "飯、麵類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整",
-      "加量"
-    ]
+    "categories": ["飯、麵類"],
+    "specialties": ["辣度", "特別調整", "加量"]
   },
   {
     "title": "沙茶炒羊肉",
     "price": 195,
     "coverUrl": "https://i.imgur.com/Auj0h27.jpeg",
     "description": "一般會用空心菜，用完會改用高麗菜。",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "沙茶炒牛肉",
     "price": 195,
     "coverUrl": "https://i.imgur.com/tGdjNpB.jpeg",
     "description": "一般會用空心菜，用完會改用高麗菜。",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蔥爆牛肉",
     "price": 220,
     "coverUrl": "https://i.imgur.com/SZlq6Ab.jpeg",
     "description": "肉品原產地：澳洲",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "糖醋排骨",
     "price": 190,
     "coverUrl": "https://i.imgur.com/hZGJrsD.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "糖醋里肌",
     "price": 190,
     "coverUrl": "https://i.imgur.com/DwbNIYR.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒回鍋肉",
     "price": 195,
     "coverUrl": "https://i.imgur.com/PE7VeeR.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蒜泥白肉",
     "price": 190,
     "coverUrl": "https://i.imgur.com/teb6CFs.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "宮保雞丁",
     "price": 190,
     "coverUrl": "https://i.imgur.com/akhO10q.jpeg",
     "description": "",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "橙汁排骨",
     "price": 190,
     "coverUrl": "https://i.imgur.com/dvBO9xT.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒肉類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒肉類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "地芋肥腸",
     "price": 250,
-    "coverUrl": "https://imgur.com/a/Ov4wio5",
+    "coverUrl": "https://i.imgur.com/diMvg9E.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蒼蠅頭",
     "price": 180,
     "coverUrl": "https://i.imgur.com/BOeICS7.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鹹蛋炒苦瓜",
     "price": 180,
     "coverUrl": "https://i.imgur.com/ujbco02.jpeg",
     "description": "使用產銷履歷苦瓜",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鹹蛋炒竹筍",
     "price": 195,
     "coverUrl": "https://i.imgur.com/zkUogOO.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蚵仔炒蛋",
     "price": 210,
     "coverUrl": "https://i.imgur.com/J08RMmP.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蝦仁炒蛋",
     "price": 240,
     "coverUrl": "https://i.imgur.com/oxChdEI.jpeg",
     "description": "使用產銷履歷白蝦",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "菜脯炒蛋",
     "price": 160,
     "coverUrl": "https://i.imgur.com/pcvNG5d.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "客家小炒",
     "price": 195,
     "coverUrl": "https://i.imgur.com/lIWi4t9.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "丁香炒花生",
     "price": 200,
     "coverUrl": "https://i.imgur.com/RHEezIn.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "老皮嫩肉",
     "price": 200,
     "coverUrl": "https://i.imgur.com/2jdlVtn.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "麻婆豆腐",
     "price": 180,
     "coverUrl": "https://i.imgur.com/QguT1kG.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "紅燒豆腐",
     "price": 180,
     "coverUrl": "https://i.imgur.com/6pJOqou.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蟹黃豆腐",
     "price": 190,
     "coverUrl": "https://i.imgur.com/H306uDg.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "四季肥腸",
     "price": 250,
     "coverUrl": "https://i.imgur.com/1u1A0Xp.jpeg",
     "description": "肉品原產地：歐洲豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "薑絲大腸",
     "price": 190,
     "coverUrl": "https://i.imgur.com/Pqfe9gi.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "麻油腰花",
     "price": 280,
     "coverUrl": "https://i.imgur.com/MFOPFYI.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蠔油豬肝",
     "price": 180,
     "coverUrl": "https://i.imgur.com/kFKh9Zd.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "絲瓜蛤仔",
     "price": 240,
     "coverUrl": "https://i.imgur.com/S75xrWh.jpeg",
     "description": "使用產銷履歷絲瓜",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "XO將頻果炒生干貝",
     "price": 390,
     "coverUrl": "https://i.imgur.com/6iDfPs4.jpeg",
     "description": "",
-    "categories": [
-      "熱炒什錦類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒什錦類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "白灼(燙)蝦",
     "price": 320,
     "coverUrl": "https://i.imgur.com/hA6Dvv2.jpeg",
     "description": "使用產銷履歷蝦",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "芹菜炒花枝",
     "price": 240,
     "coverUrl": "https://i.imgur.com/sWRha3k.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "燙大中卷",
     "price": 380,
     "coverUrl": "https://i.imgur.com/a03W4Dz.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "塔香炒螺肉",
     "price": 180,
     "coverUrl": "https://i.imgur.com/DpiKkMI.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒海瓜子",
     "price": 250,
     "coverUrl": "https://i.imgur.com/guhrBeS.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蒜泥大草蝦",
     "price": 450,
     "coverUrl": "https://i.imgur.com/d9FOB7k.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蒜泥蚵仔",
     "price": 210,
     "coverUrl": "https://i.imgur.com/VIhig1B.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "生炒三鮮",
     "price": 230,
     "coverUrl": "https://i.imgur.com/afOcNrk.jpeg",
     "description": "(水鯊、花枝、魷魚)",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "泰式檸檬鱸魚",
     "price": 430,
     "coverUrl": "https://i.imgur.com/84JXbxN.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "泰式檸檬蝦",
     "price": 450,
     "coverUrl": "https://i.imgur.com/cOgMs8G.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "清蒸鱈魚",
     "price": 300,
     "coverUrl": "https://i.imgur.com/QmW6WkJ.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "豆酥鱈魚",
     "price": 300,
     "coverUrl": "https://i.imgur.com/VUzcuK1.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "橙汁鱸魚片",
     "price": 240,
     "coverUrl": "https://i.imgur.com/lxwZHS9.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "糖醋鱸魚片",
     "price": 240,
     "coverUrl": "https://i.imgur.com/k10qwU7.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蔥燒炒蟹",
     "price": 450,
     "coverUrl": "https://i.imgur.com/we4K60c.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "避風塘炒蟹",
     "price": 450,
     "coverUrl": "https://i.imgur.com/gsZ329X.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒蛤仔",
     "price": 190,
     "coverUrl": "https://i.imgur.com/Is28U1o.jpeg",
     "description": "",
-    "categories": [
-      "熱炒海鮮類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["熱炒海鮮類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "泰式椒麻雞",
     "price": 250,
     "coverUrl": "https://i.imgur.com/IjGyewz.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鹽酥蝦",
     "price": 280,
     "coverUrl": "https://i.imgur.com/tJcCmxx.jpeg",
     "description": "使用產銷履歷蝦",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鹽酥龍珠",
     "price": 210,
     "coverUrl": "https://i.imgur.com/cB6JP1S.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鳳梨蝦球",
     "price": 290,
     "coverUrl": "https://i.imgur.com/1l2Z5wT.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "脆皮炸肥腸",
     "price": 225,
     "coverUrl": "https://i.imgur.com/jQVoEzK.jpeg",
     "description": "肉品原產地：歐洲豬肉",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "蚵仔酥",
     "price": 210,
     "coverUrl": "https://i.imgur.com/pfosyHK.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "椒鹽大草蝦",
     "price": 450,
     "coverUrl": "https://i.imgur.com/VXI0GYa.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "五味炸豆腐",
     "price": 150,
     "coverUrl": "https://i.imgur.com/EF7Cgxx.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "酥炸三鮮(蝦仁、花枝、蚵仔)",
     "price": 300,
     "coverUrl": "https://i.imgur.com/wk6cnu4.jpeg",
     "description": "使用產銷履歷白蝦",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "酥炸絲瓜",
     "price": 180,
     "coverUrl": "https://i.imgur.com/xrHuWbj.jpeg",
     "description": "使用產銷履歷絲瓜",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "爆漿熔岩蝦球(7粒)",
     "price": 270,
     "coverUrl": "https://i.imgur.com/BKLzADx.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鹽酥中卷",
     "price": 280,
     "coverUrl": "https://i.imgur.com/BFJrz0e.jpeg",
     "description": "",
-    "categories": [
-      "酥炸類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["酥炸類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "三杯雞",
     "price": 250,
-    "coverUrl": "",
+    "coverUrl": "https://i.imgur.com/ruzfLp7.jpeg",
     "description": "",
-    "categories": [
-      "三杯類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["三杯類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "三杯中卷",
     "price": 280,
     "coverUrl": "https://i.imgur.com/qIhN7Hx.jpeg",
     "description": "",
-    "categories": [
-      "三杯類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["三杯類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "三杯豬肝",
     "price": 200,
     "coverUrl": "https://i.imgur.com/e1yPMtT.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "三杯類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["三杯類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "三杯皮蛋",
     "price": 200,
     "coverUrl": "https://i.imgur.com/2afO497.jpeg",
     "description": "",
-    "categories": [
-      "三杯類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["三杯類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "三杯田雞",
     "price": 300,
     "coverUrl": "https://i.imgur.com/ruzfLp7.jpeg",
     "description": "",
-    "categories": [
-      "三杯類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["三杯類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鐵板牛柳",
     "price": 280,
     "coverUrl": "https://i.imgur.com/pcfE1TZ.jpeg",
     "description": "肉品原產地：澳洲",
-    "categories": [
-      "鐵板類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["鐵板類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鐵板豆腐",
     "price": 230,
     "coverUrl": "https://i.imgur.com/UpLLtvV.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "鐵板類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["鐵板類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鐵板蚵仔",
     "price": 250,
     "coverUrl": "https://i.imgur.com/QwCG5rm.jpeg",
     "description": "",
-    "categories": [
-      "鐵板類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["鐵板類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "鐵板豬肝",
     "price": 200,
     "coverUrl": "https://i.imgur.com/eDG0xD4.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "鐵板類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["鐵板類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "五更腸旺",
     "price": 250,
     "coverUrl": "https://i.imgur.com/nWauxcd.jpeg",
     "description": "肉品原產地：歐洲豬肉",
-    "categories": [
-      "煲類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["煲類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "茄子腸煲",
     "price": 270,
     "coverUrl": "https://i.imgur.com/NNErkAV.jpeg",
     "description": "肉品原產地：歐洲豬肉",
-    "categories": [
-      "煲類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["煲類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "茄子雞煲",
     "price": 280,
     "coverUrl": "https://i.imgur.com/E8241zO.jpeg",
     "description": "",
-    "categories": [
-      "煲類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["煲類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "花雕雞煲",
     "price": 300,
     "coverUrl": "https://i.imgur.com/BrOBoaf.jpeg",
     "description": "",
-    "categories": [
-      "煲類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["煲類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒高麗菜",
     "price": 135,
     "coverUrl": "https://i.imgur.com/cn6icJ3.jpeg",
     "description": "豬脂(油)原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒空心菜",
     "price": 135,
     "coverUrl": "https://i.imgur.com/yxymCHz.jpeg",
     "description": "豬脂(油)原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒水蓮菜",
     "price": 180,
     "coverUrl": "https://i.imgur.com/QD3c3A9.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "杞子炒川七",
     "price": 160,
     "coverUrl": "https://i.imgur.com/sW8GjTg.jpeg",
     "description": "",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "紅燒茄子",
     "price": 160,
     "coverUrl": "https://i.imgur.com/wgiSjYf.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "皮蛋地瓜葉",
     "price": 195,
     "coverUrl": "https://i.imgur.com/YO65EOw.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "燙地瓜葉",
     "price": 160,
     "coverUrl": "https://i.imgur.com/Y6d0IJA.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "isPopular": true,
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "乾煸四季豆",
     "price": 185,
     "coverUrl": "https://i.imgur.com/Ls7qekQ.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "炒菠菜",
     "price": 150,
     "coverUrl": "https://i.imgur.com/na39irO.jpeg",
     "description": "",
-    "categories": [
-      "青菜類"
-    ],
-    "specialties": [
-      "辣度",
-      "特別調整"
-    ]
+    "categories": ["青菜類"],
+    "specialties": ["辣度", "特別調整"]
   },
   {
     "title": "薑絲鱸魚湯(大)",
     "price": 380,
     "coverUrl": "https://i.imgur.com/WjvaiL7.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1373,9 +909,7 @@
     "price": 200,
     "coverUrl": "https://i.imgur.com/WjvaiL7.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1383,9 +917,7 @@
     "price": 110,
     "coverUrl": "https://i.imgur.com/WjvaiL7.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1393,9 +925,7 @@
     "price": 380,
     "coverUrl": "https://i.imgur.com/KUt74zI.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1403,9 +933,7 @@
     "price": 200,
     "coverUrl": "https://i.imgur.com/KUt74zI.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1413,9 +941,7 @@
     "price": 110,
     "coverUrl": "https://i.imgur.com/KUt74zI.jpeg",
     "description": "使用產銷履歷鱸魚",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1423,9 +949,8 @@
     "price": 355,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "isPopular": true,
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1433,9 +958,8 @@
     "price": 185,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "isPopular": true,
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1443,9 +967,8 @@
     "price": 100,
     "coverUrl": "https://i.imgur.com/lqfRpav.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "isPopular": true,
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1453,9 +976,7 @@
     "price": 355,
     "coverUrl": "https://i.imgur.com/zApUg0Q.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1463,9 +984,7 @@
     "price": 185,
     "coverUrl": "https://i.imgur.com/zApUg0Q.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1473,9 +992,7 @@
     "price": 100,
     "coverUrl": "https://i.imgur.com/zApUg0Q.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1483,9 +1000,7 @@
     "price": 260,
     "coverUrl": "https://i.imgur.com/HKveDXB.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1493,9 +1008,7 @@
     "price": 130,
     "coverUrl": "https://i.imgur.com/HKveDXB.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1503,9 +1016,7 @@
     "price": 80,
     "coverUrl": "https://i.imgur.com/HKveDXB.jpeg",
     "description": "肉品原產地：臺灣豬肉",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1513,9 +1024,7 @@
     "price": 260,
     "coverUrl": "https://i.imgur.com/539SUUI.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1523,9 +1032,7 @@
     "price": 130,
     "coverUrl": "https://i.imgur.com/539SUUI.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1533,9 +1040,7 @@
     "price": 80,
     "coverUrl": "https://i.imgur.com/539SUUI.jpeg",
     "description": "",
-    "categories": [
-      "湯類"
-    ],
+    "categories": ["湯類"],
     "specialties": []
   },
   {
@@ -1543,9 +1048,7 @@
     "price": 20,
     "coverUrl": "https://i.imgur.com/hoVBigZ.jpeg",
     "description": "168g，每滿＄200有贈送1碗白飯(不包含炒飯麵、白飯及運費)，請再結帳頁面的附註上說明。\n這邊提供額外加點的服務",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1553,9 +1056,7 @@
     "price": 50,
     "coverUrl": "https://i.imgur.com/MlyTrYZ.jpeg",
     "description": "",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1563,9 +1064,7 @@
     "price": 100,
     "coverUrl": "https://i.imgur.com/IQWt8l3.jpeg",
     "description": "750ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1573,9 +1072,7 @@
     "price": 100,
     "coverUrl": "https://i.imgur.com/bH7DuNj.jpeg",
     "description": "900ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1583,9 +1080,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/oMs9SXT.jpeg",
     "description": "990ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1593,9 +1088,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/L71w6Qx.jpeg",
     "description": "980ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1603,9 +1096,7 @@
     "price": 50,
     "coverUrl": "https://i.imgur.com/9Q2PYwc.jpeg",
     "description": "600ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1613,9 +1104,7 @@
     "price": 50,
     "coverUrl": "https://i.imgur.com/pNs8cD9.jpeg",
     "description": "600ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1623,9 +1112,7 @@
     "price": 70,
     "coverUrl": "https://i.imgur.com/HxPFJnf.jpeg",
     "description": "520ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1633,9 +1120,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/0XeFGTK.jpeg",
     "description": "900ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1643,9 +1128,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/wsZ64Po.jpeg",
     "description": "900ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1653,9 +1136,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/RFlw1nq.jpeg",
     "description": "900ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1663,9 +1144,7 @@
     "price": 60,
     "coverUrl": "https://i.imgur.com/XmLOAMv.jpeg",
     "description": "900ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1673,9 +1152,7 @@
     "price": 130,
     "coverUrl": "https://i.imgur.com/qHyHAiJ.jpeg",
     "description": "500ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   },
   {
@@ -1683,9 +1160,7 @@
     "price": 200,
     "coverUrl": "https://i.imgur.com/4xf2wX4.jpeg",
     "description": "800ml",
-    "categories": [
-      "單點及無酒精飲料"
-    ],
+    "categories": ["單點及無酒精飲料"],
     "specialties": []
   }
 ]
