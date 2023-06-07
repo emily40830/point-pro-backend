@@ -26,6 +26,6 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/order', orderRouter);
 apiRouter.use('/meal', mealRouter);
 apiRouter.use('/admin', adminOrderRouter);
-apiRouter.use('/payment/line-pay', paymentRouter);
+apiRouter.use('/payment', paymentRouter);
 
 export default apiRouter;

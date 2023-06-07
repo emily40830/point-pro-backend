@@ -27,6 +27,8 @@
     "jsonwebtoken": "^9.0.0",
     "line-pay-merchant": "^0.9.0",
     "morgan": "^1.10.0",
+    "newebpay-mpg-sdk": "^1.3.5",
+    "node-ecpay-aio": "^0.2.3",
     "pg": "^8.10.0",
     "ramda": "^0.29.0",
     "socket.io": "^4.6.1",
