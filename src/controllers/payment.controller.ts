@@ -209,38 +209,51 @@ export class EcPayController {
       const { orderId } = req.params;
 
       const now = new Date();
-      const formattedDate = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now
-        .getDate()
-        .toString()
-        .padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      const formattedDate = now.toLocaleString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
 
       const order = await prisma.orderLog.findUnique({
         where: {
           id: orderId,
+        },
+        include: {
+          orderMeals: true,
         },
       });
       if (!order) {
         return res.status(400).json({ message: 'Invalid order ID', result: null });
       }
 
-      let tradeDesc = '';
-      let itemDesc = '';
-
-      // itemDesc = order.orderMeals.map((item) => `${item.name} x ${item.quantity}`).join('#');
-      // orderDesc = `${order.name} x ${order.quantity}`;
+      const { TradeDesc, ItemName, TotalAmount } = order?.orderMeals.reduce(
+        (acc, meal) => {
+          const mealDetails = meal.mealDetails as {
+            title: string;
+            coverUrl: string;
+            price: number;
+            description: string;
+          };
+          return {
+            TradeDesc: acc.TradeDesc ? `${acc.TradeDesc},${mealDetails.description}` : mealDetails.description,
+            ItemName: acc.ItemName ? `${acc.ItemName},${mealDetails.title}` : mealDetails.title,
+            TotalAmount: acc.TotalAmount + meal.price,
+          };
+        },
+        { TradeDesc: '', ItemName: '', TotalAmount: 0 },
+      ) || { TradeDesc: '', ItemName: '', TotalAmount: 0 };
 
       const baseParams: BasePaymentParams = {
         MerchantTradeNo: Date.now().toString(),
         MerchantTradeDate: formattedDate,
-        TotalAmount: 1000,
-        TradeDesc: tradeDesc,
-        ItemName: itemDesc,
-        // ReturnURL: undefined,      // 若在 merchant 設定過, 此處不需再設定, 除非你針對此單要用個別的 hook
-        // ClientBackURL: undefined,  // 若在 merchant 設定過, 此處不需再設定, 除非你針對此單要用個別的轉導網址
-        // OrderResultURL: undefined, // 若在 merchant 設定過, 此處不需再設定, 除非你針對此單要用個別的轉導網址
+        TotalAmount,
+        TradeDesc,
+        ItemName,
       };
       const params: CreditOneTimePaymentParams = {
         // 皆為選填
@@ -258,6 +271,37 @@ export class EcPayController {
 
   public static returnHandler: RequestHandler = async (req: Request, res: Response) => {
     try {
+      const { RtnCode, RtnMsg, MerchantTradeNo, TradeNo, PaymentDate, TradeAmt, PaymentType, CheckMacValue } = req.body;
+      if (!RtnCode || !RtnMsg) {
+        return res.status(400).json({ message: '缺少 RtnCode 或 RtnMsg', result: null });
+      }
+      if (!MerchantTradeNo) {
+        return res.status(400).json({ message: '缺少 MerchantTradeNo', result: null });
+      }
+      if (!TradeNo) {
+        return res.status(400).json({ message: '缺少 TradeNo', result: null });
+      }
+
+      const order = await prisma.orderLog.findUnique({
+        where: {
+          id: MerchantTradeNo,
+        },
+        include: {
+          orderMeals: true,
+          paymentLogs: true,
+        },
+      });
+
+      await prisma.paymentLog.update({
+        where: {
+          payment_no: TradeNo,
+        },
+        data: {
+          status: 'SUCCESS',
+        },
+      });
+
+
       res.send('1|OK');
     } catch (error) {
       res.send;
