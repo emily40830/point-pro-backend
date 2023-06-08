@@ -66,8 +66,8 @@ export const getMeals = (): Prisma.MealCreateInput[] => {
     position: index,
     description: meal.description,
     coverUrl: meal.coverUrl,
-    isPopular: !!meal.isPopular,
-    publishedAt: dayjs().startOf('year').toDate(),
+    isPopular: Boolean(meal.isPopular),
+    publishedAt: meal.publishedAt ? dayjs(meal.publishedAt).toISOString() : meal.publishedAt,
     categories: {
       create: meal.categories.map((category) => ({
         category: {

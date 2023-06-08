@@ -3,7 +3,7 @@ import { ApiResponse } from '../types/shared';
 import { object, string } from 'yup';
 import { AuthService } from '../services';
 import { prismaClient } from '../helpers';
-import { includes, isEmpty } from 'ramda';
+import { isEmpty } from 'ramda';
 import { Prisma, SpecialtyItem } from '@prisma/client';
 
 const specialtyResponseFormat = (specialty: any) => ({
@@ -14,7 +14,7 @@ class SpecialtyController {
   public static getSpecialtiesHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
     try {
-      let specialty = await prismaClient.specialty.findMany({ include: { items: true } });
+      let specialty = await prismaClient.specialty.findMany();
 
       return res.status(200).send({
         message: 'successfully get specialties',
@@ -80,29 +80,20 @@ class SpecialtyController {
     // validate input
     try {
       const { title, type, items } = req.body;
-      let a: Prisma.SpecialtyCreateInput;
 
       const specialty = await prismaClient.specialty.create({
         data: {
           title,
           type,
           items: {
-            create: items.map((e: SpecialtyItem) =>
-              e.id
-                ? {
-                    specialtyItem: {
-                      create: {
-                        title: e.title,
-                        price: e.price,
-                      },
-                    },
-                  }
-                : {
-                    specialtyItemId: e.id,
-                  },
-            ),
+            create: items.map((e: SpecialtyItem) => ({
+              specialtyItem: {
+                connectOrCreate: { where: { id: e.id }, create: { title: e.title, price: e.price } },
+              },
+            })),
           },
         },
+        include: { items: { include: { specialtyItem: true } } },
       });
 
       return res.status(201).send({
@@ -124,7 +115,21 @@ class SpecialtyController {
     try {
       const { specialtyId } = req.params;
       const { id, title, items } = req.body;
-      const specialty = await prismaClient.specialty.update({ where: { id: specialtyId }, data: { id, title, items } });
+
+      const specialty = await prismaClient.specialty.update({
+        where: { id: specialtyId },
+        data: {
+          id,
+          title,
+          items: {
+            connectOrCreate: items?.map((e: Prisma.SpecialtyItemCreateWithoutFromSpecialtiesInput) => ({
+              where: { specialtyId_specialtyItemId: { specialtyId, specialtyItemId: e.id } },
+              create: { specialtyItem: { create: { title: e.title, price: e.price } } },
+            })),
+          },
+        },
+        include: { items: { include: { specialtyItem: true } } },
+      });
 
       if (isEmpty(specialty) || specialty === null) {
         res.status(404).send({
