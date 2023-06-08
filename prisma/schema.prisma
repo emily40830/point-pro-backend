@@ -82,6 +82,8 @@ model Meal {
   categories  CategoriesOnMeals[]
   specialties SpecialtiesOnMeals[]
   orderMeals  OrderMeal[]
+
+  @@map("meals")
 }
 
 model Category {
@@ -93,18 +95,23 @@ model Category {
 
   // relation
   meals CategoriesOnMeals[]
+
+  @@map("categories")
 }
 
 model CategoriesOnMeals {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(dbgenerated("now()"))
   updatedAt DateTime @updatedAt
 
   // relation
+  mealId String @db.Uuid
+  meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
   categoryId String   @db.Uuid
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  mealId     String   @db.Uuid
-  meal       Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@id([mealId, categoryId])
+  @@map("meal_category")
 }
 
 model Specialty {
