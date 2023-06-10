@@ -1,24 +1,23 @@
 import { Product, createLinePayClient, RequestRequestBody } from 'line-pay-merchant';
-import { CreditOneTimePayment, Merchant } from 'node-ecpay-aio';
+import { ALLPayment, Merchant, isValidReceivedCheckMacValue } from 'node-ecpay-aio';
 import { ApiResponse } from '../types/shared';
-import { prismaClient as prisma } from '../helpers';
+import { prismaClient } from '../helpers';
 
 import { Request, RequestHandler, Response } from 'express';
 import { LinePayClient } from 'line-pay-merchant/dist/type';
-import { BasePaymentParams, CreditOneTimePaymentParams } from 'node-ecpay-aio/dist/types';
+import { BasePaymentParams, ALLPaymentParams } from 'node-ecpay-aio/dist/types';
 
 declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      LINE_PAY_CHANNEL_ID: string;
-      LINE_PAY_CHANNEL_SECRET: string;
-      LINE_PAY_ENV: 'development' | 'production';
-      NODE_ENV: 'dev' | 'production';
-      HOST_URL: string;
-      EC_PAY_MERCHANT_ID: string;
-      EC_PAY_HASH_KEY: string;
-      EC_PAY_HASH_IV: string;
-    }
+  export interface ProcessEnv {
+    LINE_PAY_CHANNEL_ID: string;
+    LINE_PAY_CHANNEL_SECRET: string;
+    LINE_PAY_ENV: 'development' | 'production';
+    NODE_ENV: 'dev' | 'production';
+    FRONTEND_HOST: string;
+    BACKEND_HOST: string;
+    EC_PAY_MERCHANT_ID: string;
+    EC_PAY_HASH_KEY: string;
+    EC_PAY_HASH_IV: string;
   }
 }
 
@@ -26,9 +25,9 @@ export class LinePayController {
   private static linePayClient: LinePayClient;
   constructor() {
     LinePayController.linePayClient = createLinePayClient({
-      channelId: process.env.LINE_PAY_CHANNEL_ID,
-      channelSecretKey: process.env.LINE_PAY_CHANNEL_SECRET,
-      env: process.env.LINE_PAY_ENV,
+      channelId: process.env.LINE_PAY_CHANNEL_ID as string,
+      channelSecretKey: process.env.LINE_PAY_CHANNEL_SECRET as string,
+      env: process.env.LINE_PAY_ENV as 'development' | 'production',
     });
   }
   public static requestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
@@ -39,7 +38,7 @@ export class LinePayController {
         return res.status(400).json({ message: '缺少 orderId', result: {} });
       }
 
-      const order = await prisma.orderLog.findUnique({
+      const order = await prismaClient.orderLog.findUnique({
         where: { id },
         include: {
           orderMeals: true,
@@ -50,7 +49,7 @@ export class LinePayController {
         return res.status(404).json({ message: '找不到訂單', result: {} });
       }
 
-      const paymentLog = await prisma.paymentLog.findFirst({
+      const paymentLog = await prismaClient.paymentLog.findFirst({
         where: { orderId: id },
       });
 
@@ -82,27 +81,14 @@ export class LinePayController {
           };
         }),
         redirectUrls: {
-          confirmUrl: `${process.env.HOST_URL}/api/payment/line-pay/confirm`, // 跳轉這裡還需要確認
-          cancelUrl: `${process.env.HOST_URL}/api/payment/line-pay/cancel`, // 跳轉這裡還需要確認
+          confirmUrl: `${process.env.FRONTEND_HOST}/payment/confirm`, // Client 端的轉導網址 (付款完成後，會導回此網址)
+          cancelUrl: `${process.env.FRONTEND_HOST}/payment/cancel`, // Client 端的轉導網址 (付款取消後，會導回此網址)
         },
       };
 
       const response = await this.linePayClient.request.send({
         body: {
           ...linePayOrder,
-        },
-      });
-
-      await prisma.paymentLog.update({
-        where: {
-          orderId: id,
-        },
-        data: {
-          orderId: id,
-          payment_no: response.body.transactionId,
-          price: linePayOrder.amount,
-          gateway: 'LINE_PAY',
-          status: 'PENDING',
         },
       });
 
@@ -114,11 +100,11 @@ export class LinePayController {
 
   public static confirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId }: { transactionId: string } = req.body;
+      const { transactionId, orderId }: { transactionId?: string; orderId?: string } = req.params;
 
-      const paymentLog = await prisma.paymentLog.findUnique({
+      const paymentLog = await prismaClient.paymentLog.findUnique({
         where: {
-          payment_no: transactionId,
+          orderId,
         },
       });
 
@@ -134,18 +120,22 @@ export class LinePayController {
         },
       });
 
-      await prisma.paymentLog.update({
+      if (response.body.returnCode !== '0000') {
+        return res.status(400).json({ message: 'Invalid transaction ID', result: null });
+      }
+
+      await prismaClient.paymentLog.update({
         where: {
-          payment_no: transactionId,
+          orderId,
         },
         data: {
           status: 'SUCCESS',
         },
       });
 
-      await prisma.orderLog.update({
+      await prismaClient.orderLog.update({
         where: {
-          id: paymentLog.orderId,
+          orderId,
         },
         data: {
           status: 'SUCCESS',
@@ -160,11 +150,11 @@ export class LinePayController {
 
   public static refundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId } = req.body;
+      const { orderId } = req.params;
 
-      const paymentLog = await prisma.paymentLog.findUnique({
+      const paymentLog = await prismaClient.paymentLog.findUnique({
         where: {
-          payment_no: transactionId,
+          orderId,
         },
       });
 
@@ -173,16 +163,20 @@ export class LinePayController {
       }
 
       const response = await this.linePayClient.refund.send({
-        transactionId,
+        transactionId: paymentLog.paymentNo,
         body: { refundAmount: paymentLog.price },
       });
 
-      await prisma.orderLog.update({
+      if (response.body.returnCode !== '0000') {
+        return res.status(400).json({ message: 'Invalid transaction ID', result: null });
+      }
+
+      await prismaClient.orderLog.update({
         where: {
-          id: paymentLog.orderId,
+          orderId,
         },
         data: {
-          status: 'REFUND',
+          status: 'CANCEL',
         },
       });
 
@@ -193,14 +187,18 @@ export class LinePayController {
   };
 }
 
+interface CheckMacValueData {
+  CheckMacValue: string;
+}
+
 export class EcPayController {
   private static merchant: Merchant;
   constructor() {
     EcPayController.merchant = new Merchant('Test', {
-      MerchantID: process.env.ECPAY_MERCHANT_ID || '',
-      HashKey: process.env.ECPAY_HASH_KEY || '',
-      HashIV: process.env.ECPAY_HASH_IV || '',
-      ReturnURL: `${process.env.FRONTEND_HOST}/payments/ec-pay/return`,
+      MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
+      HashKey: process.env.EC_PAY_HASH_KEY as string,
+      HashIV: process.env.EC_PAY_HASH_IV as string,
+      ReturnURL: `${process.env.BACKEND_HOST}/payments/ec-pay/return`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
     });
   }
 
@@ -219,7 +217,7 @@ export class EcPayController {
         hour12: false,
       });
 
-      const order = await prisma.orderLog.findUnique({
+      const order = await prismaClient.orderLog.findUnique({
         where: {
           id: orderId,
         },
@@ -254,14 +252,23 @@ export class EcPayController {
         TotalAmount,
         TradeDesc,
         ItemName,
+        ClientBackURL: `${process.env.FRONTEND_HOST}/return?orderId=${orderId}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
       };
-      const params: CreditOneTimePaymentParams = {
+      const params = {
         // 皆為選填
+        CustomField1: `OrderID=${orderId}`, // 自訂名稱 1
+        PeriodReturnURL: undefined, // 定期定額的回傳網址
+        ClientRedirectURL: undefined, // Client 端的轉導網址
+        PaymentInfoURL: undefined, // Server 端的回傳網址
         Language: '', // 語系: undefined(繁中) | 'ENG' | 'KOR' | 'JPN' | 'CHI'
         Redeem: 'Y', // 紅利折抵: undefined(不用) | 'Y' (使用)
       };
 
-      const payment = EcPayController.merchant.createPayment(CreditOneTimePayment, baseParams, params);
+      const payment = EcPayController.merchant.createPayment(
+        ALLPayment,
+        baseParams,
+        params as unknown as ALLPaymentParams,
+      );
       const htmlRedirectPostForm = await payment.checkout(/* 可選填發票 */);
       res.status(200).json({ message: 'success', result: htmlRedirectPostForm });
     } catch (error) {
@@ -269,38 +276,44 @@ export class EcPayController {
     }
   };
 
+  static handleCheckMacValue = (data: CheckMacValueData, HashKey: string, HashIV: string) => {
+    return isValidReceivedCheckMacValue(data, HashKey, HashIV);
+  };
+
   public static returnHandler: RequestHandler = async (req: Request, res: Response) => {
     try {
-      const { RtnCode, RtnMsg, MerchantTradeNo, TradeNo, PaymentDate, TradeAmt, PaymentType, CheckMacValue } = req.body;
-      if (!RtnCode || !RtnMsg) {
-        return res.status(400).json({ message: '缺少 RtnCode 或 RtnMsg', result: null });
-      }
-      if (!MerchantTradeNo) {
-        return res.status(400).json({ message: '缺少 MerchantTradeNo', result: null });
-      }
-      if (!TradeNo) {
-        return res.status(400).json({ message: '缺少 TradeNo', result: null });
+      const data = { ...req.body };
+      const { CustomField1 } = data;
+
+      const orderId = CustomField1.split('=')[1];
+
+      const isValidReceivedCheckMacValue = EcPayController.handleCheckMacValue(
+        data,
+        process.env.EC_PAY_HASH_KEY as string,
+        process.env.EC_PAY_HASH_IV as string,
+      );
+
+      if (!isValidReceivedCheckMacValue) {
+        return res.send('0|ErrorMessage');
       }
 
-      const order = await prisma.orderLog.findUnique({
+      await prismaClient.orderLog.update({
         where: {
-          id: MerchantTradeNo,
+          orderId,
         },
-        include: {
-          orderMeals: true,
-          paymentLogs: true,
+        data: {
+          status: 'PAID',
         },
       });
 
-      await prisma.paymentLog.update({
+      await prismaClient.paymentLog.update({
         where: {
-          payment_no: TradeNo,
+          orderId,
         },
         data: {
           status: 'SUCCESS',
         },
       });
-
 
       res.send('1|OK');
     } catch (error) {
