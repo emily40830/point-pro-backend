@@ -289,7 +289,7 @@ export class EcPayController {
         params as unknown as ALLPaymentParams,
       );
       const htmlRedirectPostForm = await payment.checkout(/* 可選填發票 */);
-      res.status(200).json({ message: 'success', result: htmlRedirectPostForm });
+      res.render('checkout', { title: 'ec-pay checkout', html: htmlRedirectPostForm });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: null });
     }
