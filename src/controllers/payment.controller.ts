@@ -39,9 +39,12 @@ export class LinePayController {
       }
 
       const order = await prismaClient.orderLog.findUnique({
-        where: { id },
+        where: {
+          id: id,
+        },
         include: {
           orderMeals: true,
+          parentOrder: true,
         },
       });
 
@@ -49,16 +52,8 @@ export class LinePayController {
         return res.status(404).json({ message: '找不到訂單', result: {} });
       }
 
-      const paymentLog = await prismaClient.paymentLog.findFirst({
-        where: { orderId: id },
-      });
-
-      if (!paymentLog) {
-        return res.status(400).json({ message: '找不到付款紀錄', result: {} });
-      }
-
-      if (paymentLog && paymentLog.status === 'SUCCESS') {
-        return res.status(400).json({ message: '訂單已經完成付款', result: {} });
+      if (order.parentOrder?.status === 'SUCCESS') {
+        return res.status(400).json({ message: '訂單已付款', result: {} });
       }
 
       const linePayOrder: RequestRequestBody = {
@@ -102,21 +97,22 @@ export class LinePayController {
     try {
       const { transactionId, orderId }: { transactionId?: string; orderId?: string } = req.params;
 
-      const paymentLog = await prismaClient.paymentLog.findUnique({
+      const order = await prismaClient.orderLog.findUnique({
         where: {
-          orderId,
+          id: orderId,
+        },
+        include: {
+          orderMeals: true,
         },
       });
 
-      if (!paymentLog) {
-        return res.status(400).json({ message: 'Invalid transaction ID', result: null });
-      }
+      const amount = order?.orderMeals.reduce((sum, meal) => sum + meal.price, 0);
 
       const response = await this.linePayClient.confirm.send({
         transactionId,
         body: {
           currency: 'TWD',
-          amount: paymentLog.price,
+          amount,
         },
       });
 
@@ -124,18 +120,36 @@ export class LinePayController {
         return res.status(400).json({ message: 'Invalid transaction ID', result: null });
       }
 
-      await prismaClient.paymentLog.update({
+      const payment = await prismaClient.paymentLog.findFirst({
         where: {
-          orderId,
-        },
-        data: {
-          status: 'SUCCESS',
+          paymentNo: transactionId,
         },
       });
 
+      if (!payment) {
+        await prismaClient.paymentLog.create({
+          data: {
+            paymentNo: transactionId,
+            orderId,
+            price: amount as number,
+            status: 'SUCCESS',
+            gateway: 'LINE_PAY',
+          },
+        });
+      } else {
+        await prismaClient.paymentLog.update({
+          where: {
+            paymentNo: transactionId,
+          },
+          data: {
+            status: 'SUCCESS',
+          },
+        });
+      }
+
       await prismaClient.orderLog.update({
         where: {
-          orderId,
+          id: orderId,
         },
         data: {
           status: 'SUCCESS',
@@ -152,7 +166,7 @@ export class LinePayController {
     try {
       const { orderId } = req.params;
 
-      const paymentLog = await prismaClient.paymentLog.findUnique({
+      const paymentLog = await prismaClient.paymentLog.findFirst({
         where: {
           orderId,
         },
@@ -173,7 +187,7 @@ export class LinePayController {
 
       await prismaClient.orderLog.update({
         where: {
-          orderId,
+          id: orderId,
         },
         data: {
           status: 'CANCEL',
@@ -223,10 +237,15 @@ export class EcPayController {
         },
         include: {
           orderMeals: true,
+          parentOrder: true,
         },
       });
       if (!order) {
-        return res.status(400).json({ message: 'Invalid order ID', result: null });
+        return res.status(404).json({ message: '找不到訂單', result: {} });
+      }
+
+      if (order.parentOrder?.status === 'SUCCESS') {
+        return res.status(400).json({ message: '訂單已付款', result: {} });
       }
 
       const { TradeDesc, ItemName, TotalAmount } = order?.orderMeals.reduce(
@@ -299,21 +318,39 @@ export class EcPayController {
 
       await prismaClient.orderLog.update({
         where: {
-          orderId,
-        },
-        data: {
-          status: 'PAID',
-        },
-      });
-
-      await prismaClient.paymentLog.update({
-        where: {
-          orderId,
+          id: orderId,
         },
         data: {
           status: 'SUCCESS',
         },
       });
+
+      const paymentLog = await prismaClient.paymentLog.findFirst({
+        where: {
+          orderId,
+        },
+      });
+
+      if (!paymentLog) {
+        await prismaClient.paymentLog.create({
+          data: {
+            orderId,
+            paymentNo: data.TradeNo,
+            gateway: 'EC_PAY',
+            price: data.TradeAmt,
+            status: 'SUCCESS',
+          },
+        });
+      } else {
+        await prismaClient.paymentLog.update({
+          where: {
+            paymentNo: paymentLog.paymentNo,
+          },
+          data: {
+            status: 'SUCCESS',
+          },
+        });
+      }
 
       res.send('1|OK');
     } catch (error) {
