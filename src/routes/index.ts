@@ -8,6 +8,7 @@ import categoryRouter from './category.router';
 import specialtyRouter from './specialty.router';
 import adminOrderRouter from './adminOrder.router';
 import menuRouter from './menu.router';
+import paymentRouter from './payment.router';
 
 const apiRouter = Router();
 
@@ -30,6 +31,7 @@ apiRouter.use('/meal', mealRouter);
 apiRouter.use('/category', categoryRouter);
 apiRouter.use('/specialty', specialtyRouter);
 apiRouter.use('/admin', adminOrderRouter);
+apiRouter.use('/payment', paymentRouter);
 apiRouter.use('/menu', menuRouter);
 
 export default apiRouter;
