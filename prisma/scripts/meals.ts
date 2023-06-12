@@ -40,9 +40,9 @@ export const getSpecialties = (
         : undefined,
     items: {
       createMany: {
-        data: specialty.items.map<Prisma.SpecialtiesOnSpecialtyItemsCreateManySpecialtyInput>((itemInput) => ({
-          id: uuid.v4(),
+        data: specialty.items.map<Prisma.SpecialtiesOnSpecialtyItemsCreateManySpecialtyInput>((itemInput, index) => ({
           specialtyItemId: itemInput.id,
+          position: index,
         })),
         skipDuplicates: true,
       },

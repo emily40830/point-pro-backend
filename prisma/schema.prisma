@@ -138,7 +138,6 @@ model SpecialtyItem {
 }
 
 model SpecialtiesOnMeals {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   position  Int?     @default(0)
   createdAt DateTime @default(dbgenerated("now()"))
   updatedAt DateTime @updatedAt
@@ -148,10 +147,11 @@ model SpecialtiesOnMeals {
   specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
   mealId      String    @db.Uuid
   meal        Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@id([mealId, specialtyId])
 }
 
 model SpecialtiesOnSpecialtyItems {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   position  Int?     @default(0)
   createdAt DateTime @default(dbgenerated("now()"))
   updatedAt DateTime @updatedAt
@@ -161,6 +161,8 @@ model SpecialtiesOnSpecialtyItems {
   specialty       Specialty     @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
   specialtyItemId String        @db.Uuid
   specialtyItem   SpecialtyItem @relation(fields: [specialtyItemId], references: [id], onDelete: Cascade)
+
+  @@id([specialtyId, specialtyItemId])
 }
 
 model OrderLog {

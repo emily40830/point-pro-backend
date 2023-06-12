@@ -99,23 +99,23 @@ const main = async () => {
       }
     }
 
-    await client.period.deleteMany();
-    await client.$transaction([...createPeriods]);
+    // await client.period.deleteMany();
+    // await client.$transaction([...createPeriods]);
 
-    const seats = await client.seat.findMany();
-    const periods = await client.period.findMany();
-    const seatPeriods = getSeatPeriods(seats, periods);
+    // const seats = await client.seat.findMany();
+    // const periods = await client.period.findMany();
+    // const seatPeriods = getSeatPeriods(seats, periods);
 
-    if (seats && periods) {
-      await client.seatPeriod.deleteMany();
+    // if (seats && periods) {
+    //   await client.seatPeriod.deleteMany();
 
-      // For Local
-      for (let i = 0; i < 20; i++) {
-        const curr = seatPeriods[i];
-        await client.$transaction([client.seatPeriod.create({ data: curr })]);
-        console.info(curr.startedAt, curr.seat);
-      }
-    }
+    //   // For Local
+    //   for (let i = 0; i < 20; i++) {
+    //     const curr = seatPeriods[i];
+    //     await client.$transaction([client.seatPeriod.create({ data: curr })]);
+    //     console.info(curr.startedAt, curr.seat);
+    //   }
+    // }
   } catch (error) {
     console.log(error);
   }
