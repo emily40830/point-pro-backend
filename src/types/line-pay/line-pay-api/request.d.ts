@@ -1,6 +1,8 @@
-import { Address, Currency, GeneralRequestConfig, Product } from 'line-pay-merchant';
-
-export type Package = {
+import { LinePayApiClients } from '../payment-api/type';
+import { GeneralRequestConfig, GeneralResponseBody } from './type';
+import { Currency, Address, Product } from './type';
+/** Request */
+export declare type Package = {
   /**
    * An unique ID of package list
    */
@@ -23,8 +25,7 @@ export type Package = {
    */
   products: Product[];
 };
-
-export type RedirectUrls = {
+export declare type RedirectUrls = {
   /**
    * An information to prevent phishing while transferring between apps in Android.
    */
@@ -42,8 +43,7 @@ export type RedirectUrls = {
    */
   cancelUrl: string;
 };
-
-export type Payment = {
+export declare type Payment = {
   /**
    * Regarding automatic payment
    * - True: Processing authorization and purchase with the Confirm API at the same time
@@ -59,8 +59,7 @@ export type Payment = {
    */
   payType?: 'NORMAL' | 'PREAPPROVED';
 };
-
-export type Display = {
+export declare type Display = {
   /**
    * Language codes of the payment standby screen. The default language is English (en).
    * - Supported languages: en, ja, ko, th, zh_TW, zh_CN
@@ -73,8 +72,7 @@ export type Display = {
    */
   checkConfirmUrlBrowser?: boolean;
 };
-
-export type Shipping = {
+export declare type Shipping = {
   /**
    * Shipping address options
    * - NO_SHIPPING
@@ -101,8 +99,7 @@ export type Shipping = {
    */
   address?: Address;
 };
-
-export type AddFriend = {
+export declare type AddFriend = {
   /**
    * Service type of the friend add list
    * - lineAt
@@ -113,15 +110,13 @@ export type AddFriend = {
    */
   idList?: string[];
 };
-
-export type FamilyService = {
+export declare type FamilyService = {
   /**
    * Service type of the family service list
    */
   addFriends?: AddFriend[];
 };
-
-export type Extra = {
+export declare type Extra = {
   /**
    * Branch Name where the payment is requested from (Only 100 letters will be displayed if it's exceeded.)
    */
@@ -132,8 +127,7 @@ export type Extra = {
    */
   branchId?: string;
 };
-
-export type Options = {
+export declare type Options = {
   /**
    * Payment options
    */
@@ -155,8 +149,7 @@ export type Options = {
    */
   extra?: Extra;
 };
-
-export type RequestRequestBody = {
+export declare type RequestRequestBody = {
   /**
    * Payment amount\
    * `= sum(packages[].amount) + sum(packages[].userFee) + options.shipping.feeAmount`
@@ -185,10 +178,48 @@ export type RequestRequestBody = {
    */
   options?: Options;
 };
-
-export type RequestRequestConfig = GeneralRequestConfig & {
+export declare type RequestRequestConfig = GeneralRequestConfig & {
   /**
    * Request body of request API
    */
   body: RequestRequestBody;
 };
+/** Response */
+export declare type PaymentUrl = {
+  /**
+   * App URL to move to the payment page
+   * - Used when payment reservation is done in the app
+   * - URL to move from the merchant app to the LINE Pay.
+   */
+  app: string;
+  /**
+   * 	Web URL to move to the payment page
+   * - Used when payment reservation is done in the web
+   * - URL to move to the LINE Pay payment standby page
+   * - Move to URL that is delivered without particular parameter
+   * - If opening a pop-up in the desktop, follow the size: Width: 700px, Height : 546px
+   */
+  web: string;
+};
+export declare type Info = {
+  /**
+   * Transaction ID
+   */
+  transactionId: string;
+  /**
+   * The code value entered when code is used instead of scanner in the LINE Pay.
+   */
+  paymentAccessToken: string;
+  /**
+   * Payment URL
+   */
+  paymentUrl: PaymentUrl;
+};
+export declare type RequestResponseBody = GeneralResponseBody & {
+  /**
+   * Payment information
+   */
+  info: Info;
+};
+export declare const defaultTimeout = 20000;
+export declare const requestWithClient: LinePayApiClients['request'];

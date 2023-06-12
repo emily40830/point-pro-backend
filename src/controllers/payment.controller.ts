@@ -1,11 +1,14 @@
-import { Product, createLinePayClient, RequestRequestBody } from 'line-pay-merchant';
+import { createLinePayClient } from '../types/line-pay';
 import { ALLPayment, Merchant, isValidReceivedCheckMacValue } from 'node-ecpay-aio';
 import { ApiResponse } from '../types/shared';
 import { prismaClient } from '../helpers';
 
 import { Request, RequestHandler, Response } from 'express';
-import { LinePayClient } from 'line-pay-merchant/dist/type';
+
 import { BasePaymentParams, ALLPaymentParams } from 'node-ecpay-aio/dist/types';
+
+import { LinePayClient } from '../types/line-pay/type';
+import { Product, RequestRequestBody } from '../types/line-pay';
 
 declare global {
   export interface ProcessEnv {
@@ -112,7 +115,7 @@ export class LinePayController {
         transactionId,
         body: {
           currency: 'TWD',
-          amount,
+          amount: amount as number,
         },
       });
 
