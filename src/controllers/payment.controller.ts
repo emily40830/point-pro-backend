@@ -1,4 +1,4 @@
-import { createLinePayClient } from '../types/line-pay';
+import { createLinePayClient } from 'line-pay-merchant';
 import { ALLPayment, Merchant, isValidReceivedCheckMacValue } from 'node-ecpay-aio';
 import { ApiResponse } from '../types/shared';
 import { prismaClient } from '../helpers';
@@ -7,8 +7,8 @@ import { Request, RequestHandler, Response } from 'express';
 
 import { BasePaymentParams, ALLPaymentParams } from 'node-ecpay-aio/dist/types';
 
-import { LinePayClient } from '../types/line-pay/type';
-import { Product, RequestRequestBody } from '../types/line-pay';
+import { LinePayClient } from 'line-pay-merchant/dist/type';
+import { Product, RequestRequestBody } from 'line-pay-merchant';
 
 declare global {
   export interface ProcessEnv {
@@ -146,18 +146,10 @@ export class LinePayController {
           },
           data: {
             status: 'SUCCESS',
+            gateway: 'LINE_PAY',
           },
         });
       }
-
-      await prismaClient.orderLog.update({
-        where: {
-          id: orderId,
-        },
-        data: {
-          status: 'SUCCESS',
-        },
-      });
 
       res.status(200).json({ message: 'success', result: response });
     } catch (error) {
@@ -187,15 +179,6 @@ export class LinePayController {
       if (response.body.returnCode !== '0000') {
         return res.status(400).json({ message: 'Invalid transaction ID', result: null });
       }
-
-      await prismaClient.orderLog.update({
-        where: {
-          id: orderId,
-        },
-        data: {
-          status: 'CANCEL',
-        },
-      });
 
       res.status(200).json({ message: 'success', result: response });
     } catch (error) {
@@ -319,15 +302,6 @@ export class EcPayController {
         return res.send('0|ErrorMessage');
       }
 
-      await prismaClient.orderLog.update({
-        where: {
-          id: orderId,
-        },
-        data: {
-          status: 'SUCCESS',
-        },
-      });
-
       const paymentLog = await prismaClient.paymentLog.findFirst({
         where: {
           orderId,
@@ -351,6 +325,7 @@ export class EcPayController {
           },
           data: {
             status: 'SUCCESS',
+            gateway: 'EC_PAY',
           },
         });
       }
