@@ -151,12 +151,12 @@ class MealController {
       position: number().positive().optional(),
       isPopular: boolean().optional().default(false),
       publishedAt: date().optional(),
-      categoryIds: array(string().required()).required(),
-      specialtyIds: array(string().required()).required(),
+      categories: array(string().required()).required(),
+      specialties: array(string().required()).required(),
     });
 
     try {
-      const { title, coverUrl, description, price, categoryIds, specialtyIds } = inputSchema.cast(req.body);
+      const { title, coverUrl, description, price, categories, specialties } = inputSchema.cast(req.body);
 
       const meal = await prismaClient.meal.create({
         data: {
@@ -166,7 +166,7 @@ class MealController {
           price,
           categories: {
             createMany: {
-              data: categoryIds.map((id) => ({
+              data: categories.map((id) => ({
                 categoryId: id,
               })),
               skipDuplicates: true,
@@ -174,7 +174,7 @@ class MealController {
           },
           specialties: {
             createMany: {
-              data: specialtyIds.map((id) => ({
+              data: specialties.map((id) => ({
                 specialtyId: id,
               })),
               skipDuplicates: true,
