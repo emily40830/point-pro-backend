@@ -4,6 +4,7 @@ import { array, boolean, date, number, object, string } from 'yup';
 import { AuthService } from '../services';
 import { ignoreUndefined, prismaClient } from '../helpers';
 import { Prisma, Meal } from '@prisma/client';
+import { difference } from 'ramda';
 
 // type CategoryResponse = {
 //   id: string;
@@ -264,6 +265,28 @@ class MealController {
               })) || [],
             skipDuplicates: true,
           });
+          let oldCategoriesOnMeals = await prismaClient.categoriesOnMeals.findMany({
+            where: { mealId },
+          });
+          let newCategoriesOnMeals = await prismaClient.categoriesOnMeals.findMany({
+            where: {
+              mealId,
+              OR: categoryIds.map((id) => ({
+                categoryId: id,
+              })),
+            },
+          });
+          let diff = difference(oldCategoriesOnMeals, newCategoriesOnMeals);
+          if (diff.length > 0) {
+            await prismaClient.categoriesOnMeals.deleteMany({
+              where: {
+                OR: diff.map((e) => ({
+                  mealId,
+                  categoryId: e.categoryId,
+                })),
+              },
+            });
+          }
         }
       }
 
@@ -282,6 +305,28 @@ class MealController {
               })) || [],
             skipDuplicates: true,
           });
+          let oldSpecialtiesOnMeals = await prismaClient.specialtiesOnMeals.findMany({
+            where: { mealId },
+          });
+          let newSpecialtiesOnMeals = await prismaClient.specialtiesOnMeals.findMany({
+            where: {
+              mealId,
+              OR: specialtyIds.map((id) => ({
+                specialtyId: id,
+              })),
+            },
+          });
+          let diff = difference(oldSpecialtiesOnMeals, newSpecialtiesOnMeals);
+          if (diff.length > 0) {
+            await prismaClient.specialtiesOnMeals.deleteMany({
+              where: {
+                OR: diff.map((e) => ({
+                  mealId,
+                  specialtyId: e.specialtyId,
+                })),
+              },
+            });
+          }
         }
       }
 
