@@ -51,9 +51,21 @@ class CategoryController {
   };
   public static createCategoryHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input
-    try {
-      const { title } = req.body;
+    const inputSchema = object({
+      title: string().required(),
+    });
 
+    try {
+      await inputSchema.validate(req.body);
+    } catch (error) {
+      res.status(400).send({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
+
+    try {
+      const { title } = inputSchema.cast(req.body);
       const category = await prismaClient.category.create({
         data: {
           title,

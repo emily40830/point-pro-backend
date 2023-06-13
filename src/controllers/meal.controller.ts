@@ -6,22 +6,6 @@ import { ignoreUndefined, prismaClient } from '../helpers';
 import { Prisma, Meal } from '@prisma/client';
 import { difference } from 'ramda';
 
-// type CategoryResponse = {
-//   id: string;
-//   title: string;
-// };
-// type SpecialtyItemResponse = {
-//   id: string;
-//   title: string;
-//   price: number | null;
-// };
-
-// type SpecialtyResponse = {
-//   id: string;
-//   title: string;
-//   items: SpecialtyItemResponse[];
-// };
-
 type MealResponse = {
   id: string;
   title: string;
@@ -86,49 +70,13 @@ class MealController {
         });
       }
 
-      const categoryIds = meal.categories.map((category) => category.categoryId);
-      const specialtyIds = meal.specialties.map((specialty) => specialty.specialtyId);
-
-      // const categories = await prismaClient.category.findMany({
-      //   where: {
-      //     id: {
-      //       in: categoryIds,
-      //     },
-      //   },
-      // });
-
-      // const specialties = await prismaClient.specialty.findMany({
-      //   where: {
-      //     id: {
-      //       in: specialtyIds,
-      //     },
-      //   },
-      //   include: {
-      //     items: {
-      //       include: {
-      //         specialtyItem: true,
-      //       },
-      //     },
-      //   },
-      // });
-
       const { createdAt, updatedAt, ...rest } = meal;
 
       const result: MealResponse = {
         ...rest,
         publishedAt: rest?.publishedAt && new Date(rest.publishedAt),
-        categories: categoryIds,
-        specialties: specialtyIds,
-        // categories: categories.map((category) => ({ id: category.id, title: category.title })),
-        // specialties: specialties.map((specialty) => ({
-        //   id: specialty.id,
-        //   title: specialty.title,
-        //   items: specialty.items.map((item) => ({
-        //     id: item.specialtyItemId,
-        //     title: item.specialtyItem.title,
-        //     price: item.specialtyItem.price,
-        //   })),
-        // })),
+        categories: meal.categories.map((category) => category.categoryId),
+        specialties: meal.specialties.map((specialty) => specialty.specialtyId),
       };
 
       return res.status(200).send({
@@ -157,6 +105,15 @@ class MealController {
       categoryIds: array(string().required()).required(),
       specialtyIds: array(string().required()).required(),
     });
+
+    try {
+      await inputSchema.validate(req.body);
+    } catch (error) {
+      res.status(400).send({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
 
     try {
       const { title, coverUrl, description, price, publishedAt, categoryIds, specialtyIds } = inputSchema.cast(
