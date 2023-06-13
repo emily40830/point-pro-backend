@@ -3,24 +3,8 @@ import { ApiResponse, AuthRequest } from '../types/shared';
 import { array, boolean, date, number, object, string } from 'yup';
 import { AuthService } from '../services';
 import { ignoreUndefined, prismaClient } from '../helpers';
-import { Prisma, Meal, SpecialtyType } from '@prisma/client';
-import { max } from 'ramda';
-
-type CategoryResponse = {
-  id: string;
-  title: string;
-};
-type SpecialtyItemResponse = {
-  id: string;
-  title: string;
-  price: number | null;
-};
-
-type SpecialtyResponse = {
-  id: string;
-  title: string;
-  items: SpecialtyItemResponse[];
-};
+import { Prisma, Meal } from '@prisma/client';
+import { difference } from 'ramda';
 
 type MealResponse = {
   id: string;
@@ -30,8 +14,8 @@ type MealResponse = {
   position: number;
   isPopular: boolean;
   publishedAt: Date | null;
-  categories: CategoryResponse[];
-  specialties: SpecialtyResponse[];
+  categories: string[];
+  specialties: string[];
 };
 
 class MealController {
@@ -51,13 +35,14 @@ class MealController {
               categoryId: true,
             },
           },
-          specialties: true,
         },
       });
 
+      let result = meals.map((meal) => ({ ...meal, categories: meal.categories.map(({ categoryId }) => categoryId) }));
+
       return res.status(200).send({
         message: 'successfully get meals',
-        result: meals,
+        result,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -85,47 +70,13 @@ class MealController {
         });
       }
 
-      const categoryIds = meal.categories.map((category) => category.categoryId);
-      const specialtyIds = meal.specialties.map((specialty) => specialty.specialtyId);
-
-      const categories = await prismaClient.category.findMany({
-        where: {
-          id: {
-            in: categoryIds,
-          },
-        },
-      });
-
-      const specialties = await prismaClient.specialty.findMany({
-        where: {
-          id: {
-            in: specialtyIds,
-          },
-        },
-        include: {
-          items: {
-            include: {
-              specialtyItem: true,
-            },
-          },
-        },
-      });
-
       const { createdAt, updatedAt, ...rest } = meal;
 
       const result: MealResponse = {
         ...rest,
         publishedAt: rest?.publishedAt && new Date(rest.publishedAt),
-        categories: categories.map((category) => ({ id: category.id, title: category.title })),
-        specialties: specialties.map((specialty) => ({
-          id: specialty.id,
-          title: specialty.title,
-          items: specialty.items.map((item) => ({
-            id: item.specialtyItemId,
-            title: item.specialtyItem.title,
-            price: item.specialtyItem.price,
-          })),
-        })),
+        categories: meal.categories.map((category) => category.categoryId),
+        specialties: meal.specialties.map((specialty) => specialty.specialtyId),
       };
 
       return res.status(200).send({
@@ -150,13 +101,24 @@ class MealController {
       price: number().optional(),
       position: number().positive().optional(),
       isPopular: boolean().optional().default(false),
-      publishedAt: date().optional(),
-      categories: array(string().required()).required(),
-      specialties: array(string().required()).required(),
+      publishedAt: date().nullable().optional(),
+      categoryIds: array(string().required()).required(),
+      specialtyIds: array(string().required()).required(),
     });
 
     try {
-      const { title, coverUrl, description, price, categories, specialties } = inputSchema.cast(req.body);
+      await inputSchema.validate(req.body);
+    } catch (error) {
+      res.status(400).send({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
+
+    try {
+      const { title, coverUrl, description, price, publishedAt, categoryIds, specialtyIds } = inputSchema.cast(
+        req.body,
+      );
 
       const meal = await prismaClient.meal.create({
         data: {
@@ -164,9 +126,10 @@ class MealController {
           coverUrl,
           description,
           price,
+          publishedAt,
           categories: {
             createMany: {
-              data: categories.map((id) => ({
+              data: categoryIds.map((id) => ({
                 categoryId: id,
               })),
               skipDuplicates: true,
@@ -174,7 +137,7 @@ class MealController {
           },
           specialties: {
             createMany: {
-              data: specialties.map((id) => ({
+              data: specialtyIds.map((id) => ({
                 specialtyId: id,
               })),
               skipDuplicates: true,
@@ -216,7 +179,7 @@ class MealController {
       price: number().optional(),
       position: number().positive().optional(),
       isPopular: boolean().optional(),
-      publishedAt: date().optional(),
+      publishedAt: date().nullable().optional(),
       categoryIds: array(string().required()).optional(),
       specialtyIds: array(string().required()).optional(),
     });
@@ -259,6 +222,28 @@ class MealController {
               })) || [],
             skipDuplicates: true,
           });
+          let oldCategoriesOnMeals = await prismaClient.categoriesOnMeals.findMany({
+            where: { mealId },
+          });
+          let newCategoriesOnMeals = await prismaClient.categoriesOnMeals.findMany({
+            where: {
+              mealId,
+              OR: categoryIds.map((id) => ({
+                categoryId: id,
+              })),
+            },
+          });
+          let diff = difference(oldCategoriesOnMeals, newCategoriesOnMeals);
+          if (diff.length > 0) {
+            await prismaClient.categoriesOnMeals.deleteMany({
+              where: {
+                OR: diff.map((e) => ({
+                  mealId,
+                  categoryId: e.categoryId,
+                })),
+              },
+            });
+          }
         }
       }
 
@@ -277,6 +262,28 @@ class MealController {
               })) || [],
             skipDuplicates: true,
           });
+          let oldSpecialtiesOnMeals = await prismaClient.specialtiesOnMeals.findMany({
+            where: { mealId },
+          });
+          let newSpecialtiesOnMeals = await prismaClient.specialtiesOnMeals.findMany({
+            where: {
+              mealId,
+              OR: specialtyIds.map((id) => ({
+                specialtyId: id,
+              })),
+            },
+          });
+          let diff = difference(oldSpecialtiesOnMeals, newSpecialtiesOnMeals);
+          if (diff.length > 0) {
+            await prismaClient.specialtiesOnMeals.deleteMany({
+              where: {
+                OR: diff.map((e) => ({
+                  mealId,
+                  specialtyId: e.specialtyId,
+                })),
+              },
+            });
+          }
         }
       }
 
