@@ -85,7 +85,10 @@ class MenuController {
         result,
       });
     } catch (error) {
-      next();
+      res.status(500).send({
+        message: (error as Error).message,
+        result: null,
+      });
     }
   };
 }

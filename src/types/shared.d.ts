@@ -32,9 +32,9 @@ declare global {
   }
 }
 
-type ApiResponse = Response<{
+type ApiResponse<T = any> = Response<{
   message: string;
-  result: any;
+  result: T | null;
 }>;
 
 interface ResponseError extends Error {

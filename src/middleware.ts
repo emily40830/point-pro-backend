@@ -38,8 +38,8 @@ export const sessionMiddleware = session({
 });
 
 export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res: ApiResponse, next: NextFunction) => {
-  console.log(req.path);
-  console.log(excludes);
+  // console.log(req.path);
+  // console.log(excludes);
 
   if (excludes && excludes.includes(req.path)) {
     return next();
@@ -52,12 +52,19 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       result: null,
     });
   } else {
-    const decoded = jwt.verify(token, secret);
+    let decoded: string | jwt.JwtPayload = '';
+
+    // console.log('decode', decoded);
     const errors = [];
+    try {
+      decoded = jwt.verify(token, secret);
+    } catch (error) {
+      errors.push(error as string);
+    }
     try {
       verifyUserSchema.validateSync(decoded);
       const user = verifyUserSchema.cast(decoded);
-      console.log('user', user);
+      // console.log('user', user);
 
       req.auth = user;
       next();

@@ -30,6 +30,10 @@ export class Logger {
   }
 }
 
+export const ignoreUndefined = (newValue: any, defaultValue: any) => {
+  return newValue !== undefined ? newValue : defaultValue;
+};
+
 export const throwError = (
   options: { code?: number; message: string; sendError?: boolean } = { message: '', sendError: true },
 ) => {
