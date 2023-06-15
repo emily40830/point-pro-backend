@@ -8,6 +8,7 @@ import categoryRouter from './category.router';
 import specialtyRouter from './specialty.router';
 import adminOrderRouter from './adminOrder.router';
 import menuRouter from './menu.router';
+import imgurRouter from './imgur.router';
 
 const apiRouter = Router();
 
@@ -31,5 +32,6 @@ apiRouter.use('/category', categoryRouter);
 apiRouter.use('/specialty', specialtyRouter);
 apiRouter.use('/admin', adminOrderRouter);
 apiRouter.use('/menu', menuRouter);
+apiRouter.use('/imgur', imgurRouter);
 
 export default apiRouter;
