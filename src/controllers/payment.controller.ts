@@ -24,16 +24,31 @@ declare global {
   }
 }
 
-export class LinePayController {
+interface CheckMacValueData {
+  CheckMacValue: string;
+}
+
+export class PaymentController {
   private static linePayClient: LinePayClient;
+  private static merchant: Merchant;
+
   constructor() {
-    LinePayController.linePayClient = createLinePayClient({
+    PaymentController.linePayClient = createLinePayClient({
       channelId: process.env.LINE_PAY_CHANNEL_ID as string,
       channelSecretKey: process.env.LINE_PAY_CHANNEL_SECRET as string,
       env: process.env.LINE_PAY_ENV as 'development' | 'production',
     });
+
+    PaymentController.merchant = new Merchant('Test', {
+      MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
+      HashKey: process.env.EC_PAY_HASH_KEY as string,
+      HashIV: process.env.EC_PAY_HASH_IV as string,
+      ReturnURL: `${process.env.BACKEND_HOST}/payments/ec-pay/return`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
+    });
   }
-  public static requestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+
+  // LinePay Handlers
+  public static linePayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
       const { id } = req.params;
 
@@ -96,7 +111,7 @@ export class LinePayController {
     }
   };
 
-  public static confirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+  public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
       const { transactionId, orderId }: { transactionId?: string; orderId?: string } = req.params;
 
@@ -157,7 +172,7 @@ export class LinePayController {
     }
   };
 
-  public static refundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+  public static linePayRefundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
       const { orderId } = req.params;
 
@@ -185,24 +200,9 @@ export class LinePayController {
       res.status(500).json({ message: 'Internal server error', result: null });
     }
   };
-}
 
-interface CheckMacValueData {
-  CheckMacValue: string;
-}
-
-export class EcPayController {
-  private static merchant: Merchant;
-  constructor() {
-    EcPayController.merchant = new Merchant('Test', {
-      MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
-      HashKey: process.env.EC_PAY_HASH_KEY as string,
-      HashIV: process.env.EC_PAY_HASH_IV as string,
-      ReturnURL: `${process.env.BACKEND_HOST}/payments/ec-pay/return`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
-    });
-  }
-
-  public static requestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+  // EcPay Handlers
+  public static ecPayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
       const { orderId } = req.params;
 
@@ -269,7 +269,7 @@ export class EcPayController {
         Redeem: 'Y', // 紅利折抵: undefined(不用) | 'Y' (使用)
       };
 
-      const payment = EcPayController.merchant.createPayment(
+      const payment = PaymentController.merchant.createPayment(
         ALLPayment,
         baseParams,
         params as unknown as ALLPaymentParams,
@@ -281,18 +281,14 @@ export class EcPayController {
     }
   };
 
-  static handleCheckMacValue = (data: CheckMacValueData, HashKey: string, HashIV: string) => {
-    return isValidReceivedCheckMacValue(data, HashKey, HashIV);
-  };
-
-  public static returnHandler: RequestHandler = async (req: Request, res: Response) => {
+  public static ecPayReturnHandler: RequestHandler = async (req: Request, res: Response) => {
     try {
       const data = { ...req.body };
       const { CustomField1 } = data;
 
       const orderId = CustomField1.split('=')[1];
 
-      const isValidReceivedCheckMacValue = EcPayController.handleCheckMacValue(
+      const isValidReceivedCheckMacValue = PaymentController.handleCheckMacValue(
         data,
         process.env.EC_PAY_HASH_KEY as string,
         process.env.EC_PAY_HASH_IV as string,
@@ -335,4 +331,10 @@ export class EcPayController {
       res.send;
     }
   };
+
+  static handleCheckMacValue = (data: CheckMacValueData, HashKey: string, HashIV: string) => {
+    return isValidReceivedCheckMacValue(data, HashKey, HashIV);
+  };
 }
+
+export default PaymentController;
