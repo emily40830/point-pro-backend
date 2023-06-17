@@ -10,6 +10,8 @@ import adminOrderRouter from './adminOrder.router';
 import menuRouter from './menu.router';
 import imgurRouter from './imgur.router';
 import paymentRouter from './payment.router';
+import seatRouter from './seat.router';
+import periodRouter from './period.router';
 
 const apiRouter = Router();
 
@@ -35,5 +37,7 @@ apiRouter.use('/admin', adminOrderRouter);
 apiRouter.use('/menu', menuRouter);
 apiRouter.use('/imgur', imgurRouter);
 apiRouter.use('/payment', paymentRouter);
+apiRouter.use('/seat', seatRouter);
+apiRouter.use('/period', periodRouter);
 
 export default apiRouter;
