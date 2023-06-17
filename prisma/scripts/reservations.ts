@@ -31,7 +31,7 @@ const getReservationSettings = (): Prisma.ReservationSettingCreateInput[] => {
   }));
 };
 
-export const getPeriods = (): Prisma.PeriodCreateInput[] => {
+const getPeriodSettings = (): Prisma.PeriodSettingCreateInput[] => {
   return reservations.periods.map((period) => ({
     title: period.title,
     intervalType: period.intervalType as TimeUnit,
@@ -40,32 +40,22 @@ export const getPeriods = (): Prisma.PeriodCreateInput[] => {
   }));
 };
 
-export const getSeatPeriods = (seats: Seat[], periods: Period[]): Prisma.SeatPeriodCreateInput[] =>
-  seats.reduce<Prisma.SeatPeriodCreateInput[]>((prevSeatPeriods: Prisma.SeatPeriodCreateInput[], currSeat: Seat) => {
-    const allPeriodsForCurrentSeats = periods.reduce<Prisma.SeatPeriodCreateInput[]>((prevPeriods, currPeriod) => {
-      const periodEndTime = currPeriod.endedAt || new Date(dayjs(currPeriod.startedAt).add(2, 'months').toISOString());
-      const periodStartTime = currPeriod.startedAt || new Date();
+export const getPeriods = (): Prisma.PeriodCreateInput[] => {
+  const result: Prisma.PeriodCreateInput[] = [];
 
-      const currPeriodSettings: Prisma.SeatPeriodCreateInput[] = [];
+  const settings = getPeriodSettings();
+  for (let setting of settings) {
+    const periodEndTime = setting.endedAt || new Date(dayjs(setting.startedAt).add(2, 'months').toISOString());
+    const periodStartTime = setting.startedAt || new Date();
 
-      for (
-        let curr = periodStartTime;
-        curr < periodEndTime;
-        curr = new Date(dayjs(curr).add(1, 'week').toISOString())
-      ) {
-        const currSeatPeriod = {
-          startedAt: curr,
-          endedAt: dayjs(curr).add(2, 'hours').toDate(),
-          canBooked: true,
-          seat: { connect: { id: currSeat.id } },
-          period: { connect: { id: currPeriod.id } },
-        };
-        console.log(curr, currSeat.prefix + '-' + currSeat.no);
-        currPeriodSettings.push(currSeatPeriod);
-      }
+    for (let curr = periodStartTime; curr < periodEndTime; curr = new Date(dayjs(curr).add(1, 'week').toISOString())) {
+      const currPeriod = {
+        startedAt: curr,
+        endedAt: dayjs(curr).add(2, 'hours').toDate(),
+      };
+      result.push(currPeriod);
+    }
+  }
 
-      return [...prevPeriods, ...currPeriodSettings];
-    }, []);
-
-    return [...prevSeatPeriods, ...allPeriodsForCurrentSeats];
-  }, []);
+  return result;
+};

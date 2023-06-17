@@ -58,8 +58,8 @@ class AuthController {
 
       const seatNo = seatAndPeriod?.seat.prefix + '-' + seatAndPeriod?.seat.no.toString().padStart(2, '0');
       const startTime = new Date();
-      const periodStartTime = seatAndPeriod?.startedAt;
-      const periodEndTime = seatAndPeriod?.endedAt;
+      const periodStartTime = seatAndPeriod?.period.startedAt;
+      const periodEndTime = seatAndPeriod?.period.endedAt;
 
       const token = await AuthService.signJWT({
         seatNo,

@@ -3,22 +3,26 @@
     {
       "prefix": "A",
       "no": 1,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "A",
       "no": 2,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "A",
       "no": 3,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "A",
       "no": 4,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "A",
@@ -33,22 +37,26 @@
     {
       "prefix": "B",
       "no": 1,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "B",
       "no": 2,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "B",
       "no": 3,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "B",
       "no": 4,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "B",
@@ -63,12 +71,14 @@
     {
       "prefix": "C",
       "no": 1,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "C",
       "no": 2,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": true
     },
     {
       "prefix": "C",
@@ -93,12 +103,14 @@
     {
       "prefix": "G",
       "no": 1,
-      "peopleAmount": 10
+      "peopleAmount": 10,
+      "canOnlineBooked": true
     },
     {
       "prefix": "G",
       "no": 2,
-      "peopleAmount": 10
+      "peopleAmount": 10,
+      "canOnlineBooked": true
     },
     {
       "prefix": "G",
