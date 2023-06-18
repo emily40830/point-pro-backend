@@ -16,8 +16,7 @@ declare global {
     LINE_PAY_CHANNEL_SECRET: string;
     LINE_PAY_ENV: 'development' | 'production';
     NODE_ENV: 'dev' | 'production';
-    FRONTEND_HOST: string;
-    BACKEND_HOST: string;
+    BACKEND_URL: string;
     EC_PAY_MERCHANT_ID: string;
     EC_PAY_HASH_KEY: string;
     EC_PAY_HASH_IV: string;
@@ -29,39 +28,28 @@ interface CheckMacValueData {
 }
 
 export class PaymentController {
-  private static linePayClient: LinePayClient;
-  private static merchant: Merchant;
-
-  constructor() {
-    PaymentController.linePayClient = createLinePayClient({
-      channelId: process.env.LINE_PAY_CHANNEL_ID as string,
-      channelSecretKey: process.env.LINE_PAY_CHANNEL_SECRET as string,
-      env: process.env.LINE_PAY_ENV as 'development' | 'production',
-    });
-
-    PaymentController.merchant = new Merchant('Test', {
-      MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
-      HashKey: process.env.EC_PAY_HASH_KEY as string,
-      HashIV: process.env.EC_PAY_HASH_IV as string,
-      ReturnURL: `${process.env.BACKEND_HOST}/payments/ec-pay/return`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
-    });
-  }
+  public static linePayClient: LinePayClient;
+  public static merchant: Merchant;
 
   // LinePay Handlers
   public static linePayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { id } = req.params;
+      const { orderId, confirmUrl, cancelUrl } = req.body;
 
-      if (!id) {
+      if (!orderId) {
         return res.status(400).json({ message: '缺少 orderId', result: {} });
       }
 
       const order = await prismaClient.orderLog.findUnique({
         where: {
-          id: id,
+          id: orderId,
         },
         include: {
-          orderMeals: true,
+          orderMeals: {
+            include: {
+              meal: true,
+            },
+          },
           parentOrder: true,
         },
       });
@@ -77,37 +65,45 @@ export class PaymentController {
       const linePayOrder: RequestRequestBody = {
         amount: order.orderMeals.reduce((sum, meal) => sum + meal.price, 0),
         currency: 'TWD',
-        orderId: id,
+        orderId,
         packages: order.orderMeals.map((meal) => {
-          const mealDetails = meal.mealDetails as { title: string; coverUrl: string; price: number };
+          const mealDetails = JSON.parse(meal.mealDetails as string);
+          const mealDetailPrice = mealDetails.reduce((total: number, detail: { items: [] }) => {
+            const detailPrice = detail.items.reduce((total: number, item: { price: number }) => total + item.price, 0);
+
+            return total + detailPrice;
+          }, 0);
           return {
             id: meal.mealId,
-            amount: meal.amount,
+            amount: meal.price,
             products: [
               {
-                name: mealDetails.title,
-                imageUrl: mealDetails.coverUrl,
+                name: meal.mealTitle,
+                imageUrl: meal.meal.coverUrl,
                 quantity: meal.amount,
-                price: mealDetails.price,
+                price: meal.meal.price + mealDetailPrice,
               },
             ] as Product[],
           };
         }),
         redirectUrls: {
-          confirmUrl: `${process.env.FRONTEND_HOST}/payment/confirm`, // Client 端的轉導網址 (付款完成後，會導回此網址)
-          cancelUrl: `${process.env.FRONTEND_HOST}/payment/cancel`, // Client 端的轉導網址 (付款取消後，會導回此網址)
+          confirmUrl, // Client 端的轉導網址 (付款完成後，會導回此網址)
+          cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
         },
       };
+      console.log('order:', order);
+      console.log('linePayFormat:', linePayOrder);
 
-      const response = await this.linePayClient.request.send({
-        body: {
-          ...linePayOrder,
-        },
+      const response = await PaymentController.linePayClient.request.send({
+        body: linePayOrder,
       });
 
-      res.status(200).json({ message: 'success', result: response });
+      console.log('request return response:', response);
+
+      res.status(200).json({ message: 'line-pay checkout', result: response });
     } catch (error) {
-      res.status(500).json({ message: 'Internal server error', result: null });
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
     }
   };
 
@@ -126,7 +122,7 @@ export class PaymentController {
 
       const amount = order?.orderMeals.reduce((sum, meal) => sum + meal.price, 0);
 
-      const response = await this.linePayClient.confirm.send({
+      const response = await PaymentController.linePayClient.confirm.send({
         transactionId,
         body: {
           currency: 'TWD',
@@ -186,7 +182,7 @@ export class PaymentController {
         return res.status(400).json({ message: 'Invalid transaction ID', result: null });
       }
 
-      const response = await this.linePayClient.refund.send({
+      const response = await PaymentController.linePayClient.refund.send({
         transactionId: paymentLog.paymentNo,
         body: { refundAmount: paymentLog.price },
       });
@@ -204,7 +200,7 @@ export class PaymentController {
   // EcPay Handlers
   public static ecPayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { orderId } = req.params;
+      const { orderId, confirmUrl } = req.body;
 
       const now = new Date();
       const formattedDate = now.toLocaleString('zh-TW', {
@@ -234,22 +230,28 @@ export class PaymentController {
         return res.status(400).json({ message: '訂單已付款', result: {} });
       }
 
-      const { TradeDesc, ItemName, TotalAmount } = order?.orderMeals.reduce(
-        (acc, meal) => {
-          const mealDetails = meal.mealDetails as {
-            title: string;
-            coverUrl: string;
-            price: number;
-            description: string;
-          };
-          return {
-            TradeDesc: acc.TradeDesc ? `${acc.TradeDesc},${mealDetails.description}` : mealDetails.description,
-            ItemName: acc.ItemName ? `${acc.ItemName},${mealDetails.title}` : mealDetails.title,
-            TotalAmount: acc.TotalAmount + meal.price,
-          };
-        },
-        { TradeDesc: '', ItemName: '', TotalAmount: 0 },
-      ) || { TradeDesc: '', ItemName: '', TotalAmount: 0 };
+      console.log('order', order);
+
+      const mealTitles = order.orderMeals
+        .map((meal) => {
+          const details = JSON.parse(meal.mealDetails as string);
+          const title = details.reduce((str: string, detail: { items: []; title: string }) => {
+            const detailTitle = detail.items.reduce(
+              (str: string, item: { title: string }) => str + ', ' + item.title,
+              '',
+            );
+            return str + detail.title + detailTitle;
+          }, `${meal.mealTitle} - [`);
+          return title + ']';
+        })
+        .join('#')
+        .toString();
+
+      console.log('mealTitles', mealTitles);
+
+      const TradeDesc = mealTitles || '';
+      const ItemName = order?.orderMeals.map((meal) => meal.mealTitle).join('#') || '';
+      const TotalAmount = order?.orderMeals.reduce((acc, meal) => acc + meal.price, 0) || 0;
 
       const baseParams: BasePaymentParams = {
         MerchantTradeNo: Date.now().toString(),
@@ -257,7 +259,7 @@ export class PaymentController {
         TotalAmount,
         TradeDesc,
         ItemName,
-        ClientBackURL: `${process.env.FRONTEND_HOST}/return?orderId=${orderId}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
+        ClientBackURL: confirmUrl, // Client 端的轉導網址 (付款完成後，會導回此網址)
       };
       const params = {
         // 皆為選填
@@ -269,13 +271,15 @@ export class PaymentController {
         Redeem: 'Y', // 紅利折抵: undefined(不用) | 'Y' (使用)
       };
 
+      console.log('baseParams', baseParams);
+
       const payment = PaymentController.merchant.createPayment(
         ALLPayment,
         baseParams,
         params as unknown as ALLPaymentParams,
       );
       const htmlRedirectPostForm = await payment.checkout(/* 可選填發票 */);
-      res.render('checkout', { title: 'ec-pay checkout', html: htmlRedirectPostForm });
+      res.send({ message: 'ec-pay checkout', result: htmlRedirectPostForm });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: null });
     }
@@ -336,5 +340,18 @@ export class PaymentController {
     return isValidReceivedCheckMacValue(data, HashKey, HashIV);
   };
 }
+
+PaymentController.linePayClient = createLinePayClient({
+  channelId: process.env.LINE_PAY_CHANNEL_ID as string,
+  channelSecretKey: process.env.LINE_PAY_CHANNEL_SECRET as string,
+  env: process.env.LINE_PAY_ENV as 'development' | 'production',
+});
+
+PaymentController.merchant = new Merchant('Test', {
+  MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
+  HashKey: process.env.EC_PAY_HASH_KEY as string,
+  HashIV: process.env.EC_PAY_HASH_IV as string,
+  ReturnURL: `${process.env.BACKEND_URL}/payment/ec-pay/confirm`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
+});
 
 export default PaymentController;
