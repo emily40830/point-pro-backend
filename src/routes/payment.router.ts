@@ -3,11 +3,11 @@ import { PaymentController } from '../controllers';
 
 const paymentRouter = Router();
 
-paymentRouter.get('/line-pay/:orderId', PaymentController.linePayRequestHandler);
-paymentRouter.get('/line-pay/confirm/:orderId', PaymentController.linePayConfirmHandler);
+paymentRouter.post('/line-pay/request', PaymentController.linePayRequestHandler);
+paymentRouter.get('/line-pay/confirm', PaymentController.linePayConfirmHandler);
 paymentRouter.get('/line-pay/cancel/:orderId', PaymentController.linePayRefundHandler);
 
-paymentRouter.get('/ec-pay/:orderId', PaymentController.ecPayRequestHandler);
-paymentRouter.post('/ec-pay/cancel', PaymentController.ecPayReturnHandler);
+paymentRouter.post('/ec-pay/request', PaymentController.ecPayRequestHandler);
+paymentRouter.post('/ec-pay/confirm', PaymentController.ecPayReturnHandler);
 
 export default paymentRouter;
