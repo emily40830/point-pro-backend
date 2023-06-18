@@ -151,9 +151,10 @@ model Seat {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  periods      SeatPeriod[]
-  nextSiblings SeatSibling[] @relation("nextSeat")
-  siblings     SeatSibling[] @relation("Seat")
+  periods         SeatPeriod[]
+  nextSiblings    SeatSibling[]     @relation("nextSeat")
+  siblings        SeatSibling[]     @relation("Seat")
+  ReservationSeat ReservationSeat[]
 
   @@unique([prefix, no], name: "seatNo")
 }
@@ -195,43 +196,46 @@ model Period {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  seatPeriod SeatPeriod[]
+  seatPeriod      SeatPeriod[]
+  ReservationSeat ReservationSeat[]
 }
 
 model SeatPeriod {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  seatId          String           @db.Uuid
-  periodId        String           @db.Uuid
-  canOnlineBooked Boolean          @default(true)
-  canBooked       Boolean          @default(false)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  reservationSeat ReservationSeat?
-  period          Period           @relation(fields: [periodId], references: [id], onDelete: Cascade)
-  seat            Seat             @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seatId          String   @db.Uuid
+  periodId        String   @db.Uuid
+  canOnlineBooked Boolean  @default(true)
+  canBooked       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  period          Period   @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  seat            Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
 }
 
 model ReservationLog {
-  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reservedAt  DateTime         @default(now())
-  options     Json?            @default("{}")
-  type        ReservationType  @default(OnlineBooking)
-  startOfMeal DateTime?        @default(now())
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservedAt  DateTime          @default(now())
+  options     Json?             @default("{}")
+  type        ReservationType   @default(OnlineBooking)
+  startOfMeal DateTime?         @default(now())
   endOfMeal   DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   orderLogs   OrderLog[]
-  bookedSeat  ReservationSeat?
+  bookedSeats ReservationSeat[]
 }
 
 model ReservationSeat {
-  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reservationLogId String?         @unique @db.Uuid
-  seatPeriodId     String?         @unique @db.Uuid
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  reservationLog   ReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
-  seatPeriod       SeatPeriod?     @relation(fields: [seatPeriodId], references: [id], onDelete: Cascade)
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationLogId String? @unique @db.Uuid
+  seatId           String  @db.Uuid
+  periodId         String  @db.Uuid
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  reservationLog ReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
+  seat           Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  period         Period          @relation(fields: [periodId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

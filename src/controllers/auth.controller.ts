@@ -37,29 +37,35 @@ class AuthController {
       },
       include: {
         reservationLog: true,
-        seatPeriod: true,
+        seat: true,
+        period: true,
       },
     });
 
     if (reservation) {
-      const { reservationLog, seatPeriod } = reservation;
+      const { reservationLog, seat, period } = reservation;
 
       const reservationType = reservationLog?.type;
 
-      const seatAndPeriod = await prismaClient.seatPeriod.findUnique({
+      const seatAndPeriod = await prismaClient.seatPeriod.findFirst({
         where: {
-          id: seatPeriod?.id,
-        },
-        include: {
-          seat: true,
-          period: true,
+          periodId: period.id,
+          seatId: seat.id,
+          canBooked: false,
         },
       });
 
-      const seatNo = seatAndPeriod?.seat.prefix + '-' + seatAndPeriod?.seat.no.toString().padStart(2, '0');
+      if (seatAndPeriod) {
+        res.status(400).send({
+          message: `reservation ${reservation.reservationLogId} not created successfully, please contact administrator.`,
+          result: null,
+        });
+      }
+
+      const seatNo = seat.prefix + '-' + seat.no.toString().padStart(2, '0');
       const startTime = new Date();
-      const periodStartTime = seatAndPeriod?.period.startedAt;
-      const periodEndTime = seatAndPeriod?.period.endedAt;
+      const periodStartTime = period.startedAt;
+      const periodEndTime = period.endedAt;
 
       const token = await AuthService.signJWT({
         seatNo,
@@ -76,6 +82,10 @@ class AuthController {
         },
       });
     }
+    res.status(400).send({
+      message: `reservation ${reservationLogId} not existed`,
+      result: null,
+    });
   };
   public static registerHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input

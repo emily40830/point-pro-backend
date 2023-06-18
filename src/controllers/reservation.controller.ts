@@ -1,17 +1,15 @@
 import { array, date, number, object, string } from 'yup';
-import { prismaClient } from '../helpers';
+import { dayjs, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
-import { Prisma, ReservationType } from '@prisma/client';
 
 class ReservationController {
-  public static createReservation = async (req: AuthRequest, res: ApiResponse) => {
+  public static createReservationHandler = async (req: AuthRequest, res: ApiResponse) => {
     const inputSchema = object({
       type: string().required().oneOf(['OnlineBooking', 'PhoneBooking']),
       options: object().default(() => {}),
       amount: number().min(1).required(),
-      seats: array(string().required()).required(),
-      periodDate: date().required(),
-      periodTime: date().required(),
+      seats: array(string().required()).optional().default([]),
+      periodStartedAt: date().required(),
     });
 
     try {
@@ -22,7 +20,7 @@ class ReservationController {
         result: null,
       });
     }
-    const { type, options, seats, periodDate, periodTime } = inputSchema.cast(req.body);
+    const { type, options, amount, seats, periodStartedAt } = inputSchema.cast(req.body);
     const userRole = req.auth.role;
 
     if (userRole !== 'MERCHANT' && seats.length > 0) {
@@ -32,22 +30,51 @@ class ReservationController {
       });
     }
 
-    if (seats.length === 0) {
+    const period = await prismaClient.period.findFirst({
+      where: {
+        startedAt: dayjs(periodStartedAt).toISOString(),
+      },
+    });
+    if (period == null) {
+      return res.status(400).send({
+        message: `Can not found period started at ${periodStartedAt}`,
+        result: null,
+      });
     }
 
-    const createReservation: Prisma.ReservationLogCreateInput = {
-      reservedAt: new Date(),
-      type: type as ReservationType,
-      options,
-    };
+    const reservedSeats = [];
+
+    const seatPeriods = await prismaClient.seatPeriod.findMany({
+      where: {
+        periodId: period.id,
+        canOnlineBooked: true,
+        canBooked: true,
+      },
+      include: {
+        seat: { include: { siblings: { include: { nextSeat: true } } } },
+        period: true,
+      },
+    });
+
+    if (amount > 7)
+      res.status(200).send({
+        message: 'get seat periods',
+        result: seatPeriods,
+      });
+
+    // const createReservation: Prisma.ReservationLogCreateInput = {
+    //   reservedAt: new Date(),
+    //   type: type as ReservationType,
+    //   options,
+    // };
   };
-  public static getReservations = async (req: AuthRequest, res: ApiResponse) => {
+  public static getReservationsHandler = async (req: AuthRequest, res: ApiResponse) => {
     const userRole = req.auth.role;
     if ('reservationLogId' in req.auth) {
       // do something
     }
     if (userRole != 'USER') {
-      let reservationLogs = await prismaClient.reservationLog.findMany({ take: 100, include: { bookedSeat: true } });
+      let reservationLogs = await prismaClient.reservationLog.findMany({ take: 100, include: { bookedSeats: true } });
       res.status(200).send({
         message: 'successfully get reservation logs',
         result: reservationLogs,
@@ -71,5 +98,7 @@ class ReservationController {
     }
   };
 
-  public static getReservationDetails = () => {};
+  public static getReservationDetailsHandler = () => {};
 }
+
+export default ReservationController;

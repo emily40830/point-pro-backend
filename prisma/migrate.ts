@@ -1,4 +1,12 @@
-import { getCategories, getSpecialtyItems, getSpecialties, getSeats, getPeriods, getMeals } from './scripts';
+import {
+  getCategories,
+  getSpecialtyItems,
+  getSpecialties,
+  getSeats,
+  getPeriods,
+  getMeals,
+  getSeatPeriods,
+} from './scripts';
 import client from './client';
 
 const main = async () => {
@@ -29,20 +37,28 @@ const main = async () => {
   try {
     await client.meal.deleteMany();
     console.info('delete all meals');
+
     await client.category.deleteMany();
     console.info('delete all categories');
+
     await client.specialty.deleteMany();
     console.info('delete all specialties');
+
     await client.specialtyItem.deleteMany();
     console.info('delete all specialty items');
+
     await client.$transaction([...createCategories]);
     console.info('create all categories');
+
     await client.$transaction([...createSpecialtyItems]);
     console.info('create all specialty items');
+
     await client.$transaction([...createSpecialties]);
     console.info('create all specialties');
+
     await client.$transaction([...createMeals]);
     console.info('create all meals');
+
     await client.seatSibling.deleteMany();
     await client.seat.deleteMany();
     await client.$transaction([...createSeats]);
@@ -82,6 +98,20 @@ const main = async () => {
 
     await client.$transaction([...createPeriods]);
     console.log('create all periods');
+
+    const periods = await client.period.findMany({});
+    const seatPeriods = getSeatPeriods(periods);
+
+    await client.seatPeriod.deleteMany({});
+
+    const createSeatPeriods = seatPeriods.map((seatPeriod, index) => {
+      console.log(index, seatPeriod);
+      return client.seatPeriod.create({ data: seatPeriod });
+    });
+    for (let i = 0; i < 1000; i++) {
+      await createSeatPeriods[i];
+      console.log(i, createSeatPeriods[i]);
+    }
   } catch (error) {
     console.log(error);
   }

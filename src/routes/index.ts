@@ -12,6 +12,7 @@ import imgurRouter from './imgur.router';
 import paymentRouter from './payment.router';
 import seatRouter from './seat.router';
 import periodRouter from './period.router';
+import reservationRouter from './reservation.router';
 
 const apiRouter = Router();
 
@@ -39,5 +40,6 @@ apiRouter.use('/imgur', imgurRouter);
 apiRouter.use('/payment', paymentRouter);
 apiRouter.use('/seat', seatRouter);
 apiRouter.use('/period', periodRouter);
+apiRouter.use('/reservation', reservationRouter);
 
 export default apiRouter;

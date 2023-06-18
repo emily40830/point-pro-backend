@@ -226,19 +226,10 @@ class OrderController {
             },
             reservationsLogs: {
               select: {
-                bookedSeat: {
-                  select: {
-                    id: true,
-                    seatPeriod: {
-                      select: {
-                        seat: {
-                          select: {
-                            prefix: true,
-                            no: true,
-                          },
-                        },
-                      },
-                    },
+                bookedSeats: {
+                  include: {
+                    seat: true,
+                    period: true,
                   },
                 },
               },
@@ -251,7 +242,9 @@ class OrderController {
 
         const result = orders.map(({ orderMeals, reservationsLogs, ...rest }) => {
           // [TODO]: sibling seats?
-          const { no = 0, prefix = '' } = reservationsLogs?.bookedSeat?.seatPeriod?.seat ?? {};
+          const seats = reservationsLogs?.bookedSeats?.map(
+            (reservationSeat) => reservationSeat.seat.prefix + '-' + reservationSeat.seat.no,
+          );
 
           return {
             ...rest,
@@ -266,7 +259,7 @@ class OrderController {
               categories: meal.categories.map((category) => ({ ...category.category })),
               specialties: JSON.parse(mealDetails as string), // [TODO] mealDetails type,
             })),
-            seats: [`${prefix}-${no}`],
+            seats,
           };
         });
 

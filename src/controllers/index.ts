@@ -9,3 +9,4 @@ export { default as ImgurController } from './imgur.controller';
 export { default as PaymentController } from './payment.controller';
 export { default as SeatController } from './seat.controller';
 export { default as PeriodController } from './period.controller';
+export { default as ReservationController } from './reservation.controller';
