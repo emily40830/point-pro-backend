@@ -109,10 +109,11 @@ export class PaymentController {
 
   public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId, orderId } = req.params;
+      const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
 
-      console.log('transactionId:', transactionId);
-      console.log('orderId:', orderId);
+      if (!transactionId || !orderId) {
+        return res.status(400).json({ message: '缺少 transactionId 或 orderId', result: {} });
+      }
 
       const order = await prismaClient.orderLog.findUnique({
         where: {
@@ -122,6 +123,10 @@ export class PaymentController {
           orderMeals: true,
         },
       });
+
+      if (!order) {
+        return res.status(404).json({ message: '找不到訂單', result: {} });
+      }
 
       const amount = order?.orderMeals.reduce((sum, meal) => sum + meal.price, 0);
 
@@ -136,7 +141,7 @@ export class PaymentController {
       console.log('confirm response:', response);
 
       if (response.body.returnCode !== '0000') {
-        return res.status(400).json({ message: 'Invalid transaction ID', result: null });
+        return res.status(400).json({ message: 'Invalid transaction ID', result: response });
       }
 
       const payment = await prismaClient.paymentLog.findFirst({
@@ -166,8 +171,34 @@ export class PaymentController {
           },
         });
       }
+      const orderLog = await prismaClient.orderLog.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          status: 'SUCCESS',
+        },
+        include: {
+          orderMeals: true,
+        },
+      });
 
-      res.status(200).json({ message: 'success', result: response });
+      const paymentLog = await prismaClient.paymentLog.findFirst({
+        where: {
+          paymentNo: transactionId,
+        },
+      });
+
+      const result = {
+        response,
+        paymentLog,
+        orderLog,
+      };
+
+      res.status(200).json({
+        message: 'success',
+        result,
+      });
     } catch (error) {
       console.log('catch err:', error);
       res.status(500).json({ message: 'Internal server error', result: error });
@@ -176,7 +207,11 @@ export class PaymentController {
 
   public static linePayRefundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { orderId } = req.params;
+      const { orderId } = req.query as { orderId: string };
+
+      if (!orderId) {
+        return res.status(400).json({ message: '缺少 orderId', result: {} });
+      }
 
       const paymentLog = await prismaClient.paymentLog.findFirst({
         where: {
@@ -265,7 +300,7 @@ export class PaymentController {
         TotalAmount,
         TradeDesc,
         ItemName,
-        ClientBackURL: confirmUrl, // Client 端的轉導網址 (付款完成後，會導回此網址)
+        ClientBackURL: `${confirmUrl}?transactionId=${Date.now().toString()}&orderId=${orderId}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
       };
       const params = {
         // 皆為選填
@@ -295,6 +330,8 @@ export class PaymentController {
     try {
       const data = { ...req.body };
       const { CustomField1 } = data;
+
+      console.log('ecPayReturnHandler data', data);
 
       const orderId = CustomField1.split('=')[1];
 
