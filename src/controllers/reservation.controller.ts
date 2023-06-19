@@ -2,8 +2,7 @@ import { array, date, number, object, string } from 'yup';
 import { dayjs, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 import { Period, Prisma, ReservationType, Seat, SeatPeriod, SeatSibling } from '@prisma/client';
-import * as uuid from 'uuid';
-import AuthController from './auth.controller';
+
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse) => {
     const inputSchema = object({
@@ -233,10 +232,25 @@ class ReservationController {
         },
       });
 
-      if (reservation) {
+      if (reservation && reservation.reservationLog && reservation.period && reservation.seat) {
+        const result = {
+          id: reservation.reservationLogId,
+          reservedAt: reservation.reservationLog.reservedAt,
+          type: reservation.reservationLog.type,
+          options: reservation.reservationLog.options,
+          periodStartedAt: reservation.period.startedAt,
+          periodEndedAt: reservation.period.endedAt,
+          seats: [
+            {
+              id: reservation.seatId,
+              seatNo: reservation.seat.prefix + '-' + reservation.seat.no,
+              amount: reservation.seat.amount,
+            },
+          ],
+        };
         res.status(201).send({
           message: 'Successfully create reservation.',
-          result: reservation,
+          result,
         });
       }
 
