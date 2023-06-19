@@ -5,25 +5,18 @@ import { object, date as dateSchema } from 'yup';
 
 const SeatStatus = ['RESERVED', 'AVAILABLE', 'OCCUPIED'] as const;
 
-type ReservationInfo = {
-  startedAt: Date;
-  endedAt: Date;
-  customer?: {
-    name?: string;
-    title?: string;
-    phone: string;
-    email?: string;
-    adults: number;
-    children: number;
-  };
+type ReservationRecord = {
+  periodStartedAt: Date;
+  periodEndedAt: Date;
+  options?: { [key: string]: any };
 };
 
-type SeatInfo = {
+type SeatAndReservationInfo = {
   id: string;
   seatNo: string;
   status: 'RESERVED' | 'AVAILABLE' | 'OCCUPIED';
   date: Date;
-  current: ReservationInfo;
+  currentReservation: ReservationRecord;
 };
 
 class SeatController {
@@ -68,18 +61,18 @@ class SeatController {
         },
       });
 
-      const result: SeatInfo[] = seats.map((seat) => {
+      const result: SeatAndReservationInfo[] = seats.map((seat) => {
         const status = SeatStatus[Math.floor(Math.random() * SeatStatus.length)];
         const startedAt = dayjs(targetDate).set('hour', 12).set('minute', 0).set('second', 0);
-        let current: ReservationInfo = {
-          startedAt: startedAt.toDate(),
-          endedAt: startedAt.add(2, 'hour').toDate(),
+        let currentReservation: ReservationRecord = {
+          periodStartedAt: startedAt.toDate(),
+          periodEndedAt: startedAt.add(2, 'hour').toDate(),
         };
 
         if (status !== 'AVAILABLE') {
-          current = {
-            ...current,
-            customer: {
+          currentReservation = {
+            ...currentReservation,
+            options: {
               phone: '0912345678',
               adults: 3,
               children: 0,
@@ -92,7 +85,7 @@ class SeatController {
           seatNo: seat.prefix + '-' + seat.no,
           status: status,
           date: new Date(targetDate),
-          current,
+          currentReservation,
         };
       });
 
