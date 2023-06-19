@@ -109,7 +109,10 @@ export class PaymentController {
 
   public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId, orderId }: { transactionId?: string; orderId?: string } = req.params;
+      const { transactionId, orderId } = req.params;
+
+      console.log('transactionId:', transactionId);
+      console.log('orderId:', orderId);
 
       const order = await prismaClient.orderLog.findUnique({
         where: {
@@ -129,6 +132,8 @@ export class PaymentController {
           amount: amount as number,
         },
       });
+
+      console.log('confirm response:', response);
 
       if (response.body.returnCode !== '0000') {
         return res.status(400).json({ message: 'Invalid transaction ID', result: null });
@@ -164,7 +169,8 @@ export class PaymentController {
 
       res.status(200).json({ message: 'success', result: response });
     } catch (error) {
-      res.status(500).json({ message: 'Internal server error', result: null });
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
     }
   };
 
@@ -338,6 +344,61 @@ export class PaymentController {
 
   static handleCheckMacValue = (data: CheckMacValueData, HashKey: string, HashIV: string) => {
     return isValidReceivedCheckMacValue(data, HashKey, HashIV);
+  };
+
+  public static cashPaymentHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      const { orderId } = req.body;
+
+      console.log('orderId', orderId);
+
+      const order = await prismaClient.orderLog.findUnique({
+        where: {
+          id: orderId,
+        },
+        include: {
+          orderMeals: true,
+          parentOrder: true,
+        },
+      });
+      if (!order) {
+        return res.status(404).json({ message: '找不到訂單', result: {} });
+      }
+
+      if (order.parentOrder?.status === 'SUCCESS') {
+        return res.status(400).json({ message: '訂單已付款', result: {} });
+      }
+
+      const paymentLog = await prismaClient.paymentLog.findFirst({
+        where: {
+          orderId,
+        },
+      });
+      if (!paymentLog) {
+        await prismaClient.paymentLog.create({
+          data: {
+            orderId,
+            paymentNo: Date.now().toString(),
+            gateway: 'CASH',
+            price: order.orderMeals.reduce((acc, meal) => acc + meal.price, 0),
+            status: 'SUCCESS',
+          },
+        });
+      }
+
+      await prismaClient.orderLog.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          status: 'SUCCESS',
+        },
+      });
+
+      res.status(200).json({ message: 'Success', result: { paymentLog, order } });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error', result: null });
+    }
   };
 }
 
