@@ -128,8 +128,12 @@ class PeriodController {
     const datePeriodsWithAmount = periodsWithAmount.reduce<DatePeriodInfo[]>((prev, curr) => {
       const targets = prev.filter((d) => d.date.toDateString() === curr.periodStartedAt.toDateString());
       if (targets.length === 0) {
+        const newDate =
+          process.env.NODE_ENV === 'production'
+            ? dayjs(curr.periodStartedAt.toDateString()).add(-8, 'hour').toDate()
+            : new Date(curr.periodStartedAt.toDateString());
         const newDatePeriod: DatePeriodInfo = {
-          date: dayjs(curr.periodStartedAt.toDateString()).toDate(),
+          date: newDate,
           periods: [curr],
           totalAmount: curr.amount,
           totalAvailable: curr.available,
