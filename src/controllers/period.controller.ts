@@ -129,7 +129,7 @@ class PeriodController {
       const targets = prev.filter((d) => d.date.toDateString() === curr.periodStartedAt.toDateString());
       if (targets.length === 0) {
         const newDate =
-          process.env.NODE_ENV === 'production'
+          process.env.TIME_ENV === 'prod'
             ? dayjs(curr.periodStartedAt.toDateString()).add(-8, 'hour').toDate()
             : new Date(curr.periodStartedAt.toDateString());
         const newDatePeriod: DatePeriodInfo = {
