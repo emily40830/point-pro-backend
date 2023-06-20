@@ -1,6 +1,6 @@
 import { Period, Prisma, ReservationType, Seat, SeatPeriod, SeatSibling } from '@prisma/client';
 import { dayjs, prismaClient } from '../helpers';
-import * as uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 type CreateOnlineBookingRecord = {
   status: number;
@@ -114,7 +114,7 @@ export class ReservationService {
 
       targetSeatPeriod = twoSeatPeriods[0];
 
-      const reservationLogId = uuid.v4();
+      const reservationLogId = uuidv4();
 
       const createReservationLog: Prisma.ReservationLogCreateInput = {
         id: reservationLogId,
