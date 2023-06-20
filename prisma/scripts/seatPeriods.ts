@@ -1,25 +1,20 @@
-import { Prisma, Period } from '@prisma/client';
+import { Prisma, Period, Seat } from '@prisma/client';
 import { seats } from '../data';
 
-export const getSeatPeriods = (periodsData: Period[]): Prisma.SeatPeriodCreateInput[] => {
-  const seatsWithOnlineBooked = seats.data.filter((seat) => seat?.canOnlineBooked === true);
+export const getSeatPeriods = (periodsData: Period[], seatsData: Seat[]): Prisma.SeatPeriodCreateInput[] => {
+  const seatsWithOnlineBooked = seats.data
+    .filter((seat) => seat?.canOnlineBooked === true)
+    .map((seat) => seat.prefix + '-' + seat.no);
 
-  const seatPeriods = seatsWithOnlineBooked.reduce<Prisma.SeatPeriodCreateInput[]>(
+  const seatsDataWithOnlineBooked = seatsData.filter((d) => seatsWithOnlineBooked.includes(d.prefix + '-' + d.no));
+
+  const seatPeriods = seatsDataWithOnlineBooked.reduce<Prisma.SeatPeriodCreateInput[]>(
     (prevSeatPeriods: Prisma.SeatPeriodCreateInput[], currSeat) => {
       const allPeriodsForCurrentSeat: Prisma.SeatPeriodCreateInput[] = periodsData.map((period) => ({
         canOnlineBooked: true,
         canBooked: true,
         seat: {
-          connectOrCreate: {
-            where: {
-              seatNo: { prefix: currSeat.prefix, no: currSeat.no },
-            },
-            create: {
-              prefix: currSeat.prefix,
-              no: currSeat.no,
-              amount: currSeat.peopleAmount,
-            },
-          },
+          connect: { id: currSeat.id },
         },
         period: { connect: { id: period.id } },
       }));

@@ -100,15 +100,16 @@ const main = async () => {
     console.log('create all periods');
 
     const periods = await client.period.findMany({});
-    const seatPeriods = getSeatPeriods(periods);
-
+    const seats = await client.seat.findMany({});
+    // console.log(periods, seats);
+    const seatPeriods = getSeatPeriods(periods, seats);
     await client.seatPeriod.deleteMany({});
 
     const createSeatPeriods = seatPeriods.map((seatPeriod, index) => {
       console.log(index, seatPeriod);
       return client.seatPeriod.create({ data: seatPeriod });
     });
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 2592; i++) {
       await createSeatPeriods[i];
       console.log(i, createSeatPeriods[i]);
     }

@@ -1,5 +1,5 @@
 import { object, date as dateSchema } from 'yup';
-import { prismaClient } from '../helpers';
+import { dayjs, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 type PeriodInfo = {
@@ -129,7 +129,7 @@ class PeriodController {
       const targets = prev.filter((d) => d.date.toDateString() === curr.periodStartedAt.toDateString());
       if (targets.length === 0) {
         const newDatePeriod: DatePeriodInfo = {
-          date: new Date(curr.periodStartedAt.toDateString()),
+          date: dayjs(curr.periodStartedAt.toDateString()).toDate(),
           periods: [curr],
           totalAmount: curr.amount,
           totalAvailable: curr.available,

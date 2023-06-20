@@ -94,11 +94,15 @@ class AuthController {
       await inputSchema.validate(req.body);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(400).send({
+        res.status(400).json({
           message: `invalid input:${error.message}`,
           result: null,
         });
       }
+      res.status(500).json({
+        message: (error as Error).message,
+        result: null,
+      });
     }
 
     const { account, password } = inputSchema.cast(req.body);
