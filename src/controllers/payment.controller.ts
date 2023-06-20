@@ -9,6 +9,7 @@ import { BasePaymentParams, ALLPaymentParams } from 'node-ecpay-aio/dist/types';
 
 import { LinePayClient } from 'line-pay-merchant/dist/type';
 import { Product, RequestRequestBody } from 'line-pay-merchant';
+import { Meal, OrderLog, OrderMeal } from '@prisma/client';
 
 declare global {
   export interface ProcessEnv {
@@ -27,6 +28,14 @@ interface CheckMacValueData {
   CheckMacValue: string;
 }
 
+interface orderMeals extends OrderMeal {
+  meal: Meal;
+}
+interface Orders extends OrderLog {
+  orderMeals: orderMeals[];
+  parentOrder: OrderLog;
+}
+
 export class PaymentController {
   public static linePayClient: LinePayClient;
   public static merchant: Merchant;
@@ -40,37 +49,91 @@ export class PaymentController {
         return res.status(400).json({ message: '缺少 orderId', result: {} });
       }
 
-      const order = await prismaClient.orderLog.findUnique({
-        where: {
-          id: orderId,
-        },
-        include: {
-          orderMeals: {
-            include: {
-              meal: true,
+      let linePayOrder;
+
+      if (typeof orderId === 'string') {
+        const order = await prismaClient.orderLog.findUnique({
+          where: {
+            id: orderId,
+          },
+          include: {
+            orderMeals: {
+              include: {
+                meal: true,
+              },
+            },
+            parentOrder: true,
+          },
+        });
+
+        if (!order) {
+          return res.status(404).json({ message: '找不到訂單', result: {} });
+        }
+
+        if (order.parentOrder?.status === 'SUCCESS') {
+          return res.status(400).json({ message: '訂單已付款', result: {} });
+        }
+
+        linePayOrder = PaymentController.createLinePayOrder([order as Orders], orderId, confirmUrl, cancelUrl);
+      } else if (Array.isArray(orderId)) {
+        const orders = await prismaClient.orderLog.findMany({
+          where: {
+            id: {
+              in: orderId,
             },
           },
-          parentOrder: true,
-        },
+          include: {
+            orderMeals: {
+              include: {
+                meal: true,
+              },
+            },
+            parentOrder: true,
+          },
+        });
+
+        if (!orders || orders.length === 0) {
+          return res.status(404).json({ message: '找不到訂單', result: {} });
+        }
+
+        linePayOrder = PaymentController.createLinePayOrder(
+          orders as Orders[],
+          orderId.join(','),
+          confirmUrl,
+          cancelUrl,
+        );
+      }
+
+      console.log('linePayFormat:', linePayOrder);
+
+      const response = await PaymentController.linePayClient.request.send({
+        body: linePayOrder,
       });
 
-      if (!order) {
-        return res.status(404).json({ message: '找不到訂單', result: {} });
-      }
+      console.log('request return response:', response);
 
-      if (order.parentOrder?.status === 'SUCCESS') {
-        return res.status(400).json({ message: '訂單已付款', result: {} });
-      }
+      res.status(200).json({ message: 'line-pay checkout', result: response });
+    } catch (error) {
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
+    }
+  };
 
-      const linePayOrder: RequestRequestBody = {
-        amount: order.orderMeals.reduce((sum, meal) => sum + meal.price, 0),
-        currency: 'TWD',
-        orderId,
-        packages: order.orderMeals.map((meal) => {
+  static createLinePayOrder = (
+    orders: Orders[],
+    orderId: string,
+    confirmUrl: string,
+    cancelUrl: string,
+  ): RequestRequestBody => {
+    return {
+      amount: orders.reduce((total, order) => total + order.orderMeals.reduce((sum, meal) => sum + meal.price, 0), 0),
+      currency: 'TWD',
+      orderId,
+      packages: orders.flatMap((order) =>
+        order.orderMeals.map((meal) => {
           const mealDetails = JSON.parse(meal.mealDetails as string);
           const mealDetailPrice = mealDetails.reduce((total: number, detail: { items: [] }) => {
             const detailPrice = detail.items.reduce((total: number, item: { price: number }) => total + item.price, 0);
-
             return total + detailPrice;
           }, 0);
           return {
@@ -86,25 +149,12 @@ export class PaymentController {
             ] as Product[],
           };
         }),
-        redirectUrls: {
-          confirmUrl, // Client 端的轉導網址 (付款完成後，會導回此網址)
-          cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
-        },
-      };
-      console.log('order:', order);
-      console.log('linePayFormat:', linePayOrder);
-
-      const response = await PaymentController.linePayClient.request.send({
-        body: linePayOrder,
-      });
-
-      console.log('request return response:', response);
-
-      res.status(200).json({ message: 'line-pay checkout', result: response });
-    } catch (error) {
-      console.log('catch err:', error);
-      res.status(500).json({ message: 'Internal server error', result: error });
-    }
+      ),
+      redirectUrls: {
+        confirmUrl, // Client端的轉導網址 (付款完成後，會導回此網址)
+        cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
+      },
+    };
   };
 
   public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
@@ -125,20 +175,29 @@ export class PaymentController {
         return res.status(400).json({ message: '訂單已付款', result: {} });
       }
 
-      const order = await prismaClient.orderLog.findUnique({
+      console.log('orderId: ', orderId);
+
+      const orderIds = orderId.split(',');
+
+      const orders = await prismaClient.orderLog.findMany({
         where: {
-          id: orderId,
+          id: {
+            in: orderIds,
+          },
         },
         include: {
           orderMeals: true,
         },
       });
 
-      if (!order) {
+      if (!orders || orders.length === 0) {
         return res.status(404).json({ message: '找不到訂單', result: {} });
       }
 
-      const amount = order?.orderMeals.reduce((sum, meal) => sum + meal.price, 0);
+      const amount = orders.reduce(
+        (total, order) => total + order.orderMeals.reduce((sum, meal) => sum + meal.price, 0),
+        0,
+      );
 
       const response = await PaymentController.linePayClient.confirm.send({
         transactionId,
@@ -158,7 +217,7 @@ export class PaymentController {
         await prismaClient.paymentLog.create({
           data: {
             paymentNo: transactionId,
-            orderId,
+            orderId: orderId.toString(),
             price: amount as number,
             status: 'SUCCESS',
             gateway: 'LINE_PAY',
