@@ -31,61 +31,16 @@ class AuthController {
 
     const { reservationLogId } = inputSchema.cast(req.body);
 
-    const reservation = await prismaClient.reservationSeat.findFirst({
-      where: {
-        reservationLogId,
-      },
-      include: {
-        reservationLog: true,
-        seat: true,
-        period: true,
-      },
-    });
+    try {
+      const token = await AuthService.generateReservationToken(reservationLogId);
 
-    if (reservation) {
-      const { reservationLog, seat, period } = reservation;
-
-      const reservationType = reservationLog?.type;
-
-      const seatAndPeriod = await prismaClient.seatPeriod.findFirst({
-        where: {
-          periodId: period.id,
-          seatId: seat.id,
-          canBooked: false,
-        },
-      });
-
-      if (seatAndPeriod) {
-        res.status(400).send({
-          message: `reservation ${reservation.reservationLogId} not created successfully, please contact administrator.`,
-          result: null,
-        });
-      }
-
-      const seatNo = seat.prefix + '-' + seat.no.toString().padStart(2, '0');
-      const startTime = new Date();
-      const periodStartTime = period.startedAt;
-      const periodEndTime = period.endedAt;
-
-      const token = await AuthService.signJWT({
-        seatNo,
-        reservationType,
-        startTime,
-        reservationLogId,
-        periodStartTime,
-        periodEndTime,
-      });
       res.status(200).send({
         message: 'successfully create token',
         result: {
           token,
         },
       });
-    }
-    res.status(400).send({
-      message: `reservation ${reservationLogId} not existed`,
-      result: null,
-    });
+    } catch (error) {}
   };
   public static registerHandler: RequestHandler = async (req, res: ApiResponse) => {
     // validate input

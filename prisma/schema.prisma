@@ -226,16 +226,16 @@ model ReservationLog {
 }
 
 model ReservationSeat {
-  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reservationLogId String? @unique @db.Uuid
-  seatId           String  @db.Uuid
-  periodId         String  @db.Uuid
+  id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationLogId String @db.Uuid
+  seatId           String @db.Uuid
+  periodId         String @db.Uuid
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  reservationLog ReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
-  seat           Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
-  period         Period          @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  reservationLog ReservationLog @relation(fields: [reservationLogId], references: [id], onDelete: Cascade)
+  seat           Seat           @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  period         Period         @relation(fields: [periodId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

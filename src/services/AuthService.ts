@@ -134,4 +134,64 @@ export class AuthService {
 
     return member || null;
   };
+  static generateReservationToken = async (reservationLogId: string) => {
+    try {
+      const reservation = await prismaClient.reservationSeat.findFirst({
+        where: {
+          reservationLogId,
+        },
+        include: {
+          reservationLog: true,
+          seat: true,
+          period: true,
+        },
+      });
+
+      if (reservation) {
+        const { reservationLog, seat, period } = reservation;
+
+        const reservationType = reservationLog?.type;
+
+        const seatAndPeriod = await prismaClient.seatPeriod.findFirst({
+          where: {
+            periodId: period.id,
+            seatId: seat.id,
+            canBooked: true,
+          },
+        });
+
+        if (seatAndPeriod) {
+          return throwError({
+            code: 400,
+            message: `reservation ${reservation.reservationLogId} not created successfully, please contact administrator.`,
+            sendError: false,
+          });
+        }
+        const seatNo = seat.prefix + '-' + seat.no.toString().padStart(2, '0');
+        const startTime = new Date();
+        const periodStartTime = period.startedAt;
+        const periodEndTime = period.endedAt;
+
+        const token = await this.signJWT({
+          seatNo,
+          reservationType,
+          startTime,
+          reservationLogId,
+          periodStartTime,
+          periodEndTime,
+        });
+        return token;
+      }
+
+      return throwError({
+        code: 400,
+        message: `reservation ${reservationLogId} not existed`,
+      });
+    } catch (error) {
+      return throwError({
+        code: 500,
+        message: (error as Error).message,
+      });
+    }
+  };
 }
