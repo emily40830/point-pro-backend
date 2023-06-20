@@ -115,6 +115,16 @@ export class PaymentController {
         return res.status(400).json({ message: '缺少 transactionId 或 orderId', result: {} });
       }
 
+      const payment = await prismaClient.paymentLog.findFirst({
+        where: {
+          paymentNo: transactionId,
+        },
+      });
+
+      if (payment?.status === 'SUCCESS') {
+        return res.status(400).json({ message: '訂單已付款', result: {} });
+      }
+
       const order = await prismaClient.orderLog.findUnique({
         where: {
           id: orderId,
@@ -144,12 +154,6 @@ export class PaymentController {
         return res.status(400).json({ message: 'Invalid transaction ID', result: response });
       }
 
-      const payment = await prismaClient.paymentLog.findFirst({
-        where: {
-          paymentNo: transactionId,
-        },
-      });
-
       if (!payment) {
         await prismaClient.paymentLog.create({
           data: {
@@ -160,6 +164,7 @@ export class PaymentController {
             gateway: 'LINE_PAY',
           },
         });
+        console.log('create payment log success');
       } else {
         await prismaClient.paymentLog.update({
           where: {
@@ -170,29 +175,47 @@ export class PaymentController {
             gateway: 'LINE_PAY',
           },
         });
+        console.log('update payment log success');
       }
-      const orderLog = await prismaClient.orderLog.update({
-        where: {
-          id: orderId,
-        },
-        data: {
-          status: 'SUCCESS',
-        },
-        include: {
-          orderMeals: true,
-        },
-      });
 
       const paymentLog = await prismaClient.paymentLog.findFirst({
         where: {
           paymentNo: transactionId,
+        },
+        select: {
+          paymentNo: true,
+          price: true,
+          gateway: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          order: {
+            select: {
+              id: true,
+              orderMeals: {
+                select: {
+                  id: true,
+                  mealId: true,
+                  mealTitle: true,
+                  price: true,
+                  amount: true,
+                  mealDetails: true,
+                  meal: {
+                    select: {
+                      coverUrl: true,
+                      price: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
       const result = {
         response,
         paymentLog,
-        orderLog,
       };
 
       res.status(200).json({
