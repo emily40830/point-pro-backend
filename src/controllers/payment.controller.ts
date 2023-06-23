@@ -1,15 +1,13 @@
+import { Request, RequestHandler, Response } from 'express';
+import { mixed, object, string } from 'yup';
 import { createLinePayClient } from 'line-pay-merchant';
 import { ALLPayment, Merchant, isValidReceivedCheckMacValue } from 'node-ecpay-aio';
-import { ApiResponse } from '../types/shared';
-import { prismaClient } from '../helpers';
-
-import { Request, RequestHandler, Response } from 'express';
 
 import { BasePaymentParams, ALLPaymentParams } from 'node-ecpay-aio/dist/types';
-
 import { LinePayClient } from 'line-pay-merchant/dist/type';
-import { Product, RequestRequestBody } from 'line-pay-merchant';
-import { Meal, OrderLog, OrderMeal } from '@prisma/client';
+
+import { prismaClient, OrderProcessor, PaymentProcessor } from '../helpers';
+import { ApiResponse } from '../types/shared';
 
 declare global {
   export interface ProcessEnv {
@@ -28,81 +26,50 @@ interface CheckMacValueData {
   CheckMacValue: string;
 }
 
-interface orderMeals extends OrderMeal {
-  meal: Meal;
-}
-interface Orders extends OrderLog {
-  orderMeals: orderMeals[];
-  parentOrder: OrderLog;
-}
+const linePayRequestSchema = object().shape({
+  orderId: mixed().required('缺少 orderId'),
+  confirmUrl: string().required('缺少 confirmUrl'),
+  cancelUrl: string().required('缺少 cancelUrl'),
+});
+
+const ecPayRequestSchema = object().shape({
+  orderId: mixed().required('缺少 orderId'),
+  confirmUrl: string().required('缺少 confirmUrl'),
+});
+
+const cashPaymentSchema = object().shape({
+  orderId: mixed().required('缺少 orderId'),
+});
 
 export class PaymentController {
+  static errorNotFindHandler = PaymentProcessor.errorNotFindHandler;
   public static linePayClient: LinePayClient;
   public static merchant: Merchant;
 
   // LinePay Handlers
   public static linePayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { orderId, confirmUrl, cancelUrl } = req.body;
-
-      if (!orderId) {
-        return res.status(400).json({ message: '缺少 orderId', result: {} });
+      linePayRequestSchema.validateSync(req.body);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: {},
+        });
       }
+    }
+
+    try {
+      const { orderId, confirmUrl, cancelUrl } = req.body;
 
       let linePayOrder;
 
-      if (typeof orderId === 'string') {
-        const order = await prismaClient.orderLog.findUnique({
-          where: {
-            id: orderId,
-          },
-          include: {
-            orderMeals: {
-              include: {
-                meal: true,
-              },
-            },
-            parentOrder: true,
-          },
-        });
-
-        if (!order) {
-          return res.status(404).json({ message: '找不到訂單', result: {} });
-        }
-
-        if (order.parentOrder?.status === 'SUCCESS') {
-          return res.status(400).json({ message: '訂單已付款', result: {} });
-        }
-
-        linePayOrder = PaymentController.createLinePayOrder([order as Orders], orderId, confirmUrl, cancelUrl);
-      } else if (Array.isArray(orderId)) {
-        const orders = await prismaClient.orderLog.findMany({
-          where: {
-            id: {
-              in: orderId,
-            },
-          },
-          include: {
-            orderMeals: {
-              include: {
-                meal: true,
-              },
-            },
-            parentOrder: true,
-          },
-        });
-
-        if (!orders || orders.length === 0) {
-          return res.status(404).json({ message: '找不到訂單', result: {} });
-        }
-
-        linePayOrder = PaymentController.createLinePayOrder(
-          orders as Orders[],
-          orderId.join(','),
-          confirmUrl,
-          cancelUrl,
-        );
-      }
+      const orders = await OrderProcessor.getOrder(orderId);
+      if (!orders || !orders[0].parentOrderId) return this.errorNotFindHandler(res, '訂單不存在');
+      const parentOrder = await OrderProcessor.parentOderHandler(orders);
+      if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
+      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) return this.errorNotFindHandler(res, '訂單已付款');
+      linePayOrder = PaymentProcessor.createLinePayOrder(orders, parentOrder.id, confirmUrl, cancelUrl);
 
       console.log('linePayFormat:', linePayOrder);
 
@@ -119,172 +86,98 @@ export class PaymentController {
     }
   };
 
-  static createLinePayOrder = (
-    orders: Orders[],
-    orderId: string,
-    confirmUrl: string,
-    cancelUrl: string,
-  ): RequestRequestBody => {
-    return {
-      amount: orders.reduce((total, order) => total + order.orderMeals.reduce((sum, meal) => sum + meal.price, 0), 0),
-      currency: 'TWD',
-      orderId,
-      packages: orders.flatMap((order) =>
-        order.orderMeals.map((meal) => {
-          const mealDetails = JSON.parse(meal.mealDetails as string);
-          const mealDetailPrice = mealDetails.reduce((total: number, detail: { items: [] }) => {
-            const detailPrice = detail.items.reduce((total: number, item: { price: number }) => total + item.price, 0);
-            return total + detailPrice;
-          }, 0);
-          return {
-            id: meal.mealId,
-            amount: meal.price,
-            products: [
-              {
-                name: meal.mealTitle,
-                imageUrl: meal.meal.coverUrl,
-                quantity: meal.amount,
-                price: meal.meal.price + mealDetailPrice,
-              },
-            ] as Product[],
-          };
-        }),
-      ),
-      redirectUrls: {
-        confirmUrl, // Client端的轉導網址 (付款完成後，會導回此網址)
-        cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
-      },
-    };
+  public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
+
+      if (!transactionId || !orderId) {
+        return this.errorNotFindHandler(res, '缺少 transactionId 或 orderId');
+      }
+
+      const parentOrder = await OrderProcessor.getOrder([orderId]);
+
+      if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
+
+      const payments = await PaymentProcessor.getPayment(parentOrder);
+      const amount = payments?.reduce((total, payment) => payment.price, 0);
+
+      if (!payments || !amount) {
+        return this.errorNotFindHandler(res, '找不到付款紀錄');
+      }
+
+      const response = await PaymentController.linePayClient.confirm.send({
+        transactionId,
+        body: {
+          currency: 'TWD',
+          amount: amount,
+        },
+      });
+
+      console.log('confirm response:', response);
+
+      if (response.body.returnCode !== '0000') {
+        return this.errorNotFindHandler(res, 'Invalid transaction ID');
+      }
+
+      const paymentLogs = PaymentProcessor.updatePaymentLog({
+        payment: payments,
+        status: 'SUCCESS',
+        gateway: 'LINE_PAY',
+      });
+
+      res.status(200).json({
+        message: 'success',
+        result: {
+          response,
+          paymentLogs,
+        },
+      });
+    } catch (error) {
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
+    }
   };
 
-  public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
-  try {
-    const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
+  public static linePayRefundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      const { orderId } = req.query as { orderId: string };
 
-    if (!transactionId || !orderId) {
-      return res.status(400).json({ message: '缺少 transactionId 或 orderId', result: {} });
-    }
+      if (!orderId) return this.errorNotFindHandler(res, '缺少 orderId');
 
-    const orderIds = orderId.split(',');
-    const orders = await prismaClient.orderLog.findMany({
-      where: {
-        id: {
-          in: orderIds,
+      const order = await OrderProcessor.getOrder([orderId]);
+      if (!order) return this.errorNotFindHandler(res, '訂單不存在');
+      await OrderProcessor.parentOderHandler(order);
+      const paymentLog = await prismaClient.paymentLog.findFirst({
+        where: {
+          orderId: order[0].id,
         },
-      },
-      include: {
-        orderMeals: true,
-      },
-    });
+      });
 
-    if (!orders || orders.length === 0) {
-      return res.status(404).json({ message: '找不到訂單', result: {} });
+      if (!paymentLog) return this.errorNotFindHandler(res, '找不到付款紀錄');
+
+      const response = PaymentController.linePayClient.refund.send({
+        transactionId: paymentLog.paymentNo,
+        body: { refundAmount: paymentLog.price },
+      });
+
+      res.status(200).json({ message: 'success', result: response });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error', result: null });
     }
-
-    const amount = orders.reduce(
-      (total, order) => total + order.orderMeals.reduce((sum, meal) => sum + meal.price, 0),
-      0,
-    );
-
-    const response = await PaymentController.linePayClient.confirm.send({
-      transactionId,
-      body: {
-        currency: 'TWD',
-        amount: amount as number,
-      },
-    });
-
-    console.log('confirm response:', response);
-
-    if (response.body.returnCode !== '0000') {
-      return res.status(400).json({ message: 'Invalid transaction ID', result: response });
-    }
-
-    await Promise.all(
-      orders.map((order) =>
-        prismaClient.paymentLog.upsert({
-          where: {
-            paymentNo: transactionId,
-          },
-          update: {
-            status: 'SUCCESS',
-            gateway: 'LINE_PAY',
-          },
-          create: {
-            paymentNo: transactionId,
-            orderId: order.id,
-            price: amount as number,
-            status: 'SUCCESS',
-            gateway: 'LINE_PAY',
-          },
-        }),
-      ),
-    );
-
-    const paymentLogs = await prismaClient.paymentLog.findMany({
-      where: {
-        paymentNo: transactionId,
-      },
-    });
-
-    res.status(200).json({
-      message: 'success',
-      result: {
-        response,
-        paymentLogs,
-      },
-    });
-  } catch (error) {
-    console.log('catch err:', error);
-    res.status(500).json({ message: 'Internal server error', result: error });
-  }
-};
-
-public static linePayRefundHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
-  try {
-    const { orderId } = req.query as { orderId: string };
-
-    if (!orderId) {
-      return res.status(400).json({ message: '缺少 orderId', result: {} });
-    }
-
-    const orderIds = orderId.split(',');
-    const paymentLogs = await prismaClient.paymentLog.findMany({
-      where: {
-        orderId: {
-          in: orderIds,
-        },
-      },
-    });
-
-    if (!paymentLogs || paymentLogs.length === 0) {
-      return res.status(400).json({ message: 'Invalid transaction ID', result: null });
-    }
-
-    const responses = await Promise.all(
-      paymentLogs.map((paymentLog) =>
-        PaymentController.linePayClient.refund.send({
-          transactionId: paymentLog.paymentNo,
-          body: { refundAmount: paymentLog.price },
-        }),
-      ),
-    );
-
-    const failedResponses = responses.filter((response) => response.body.returnCode !== '0000');
-
-    if (failedResponses.length > 0) {
-      return res.status(400).json({ message: 'Invalid transaction ID', result: failedResponses });
-    }
-
-    res.status(200).json({ message: 'success', result: responses });
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error', result: null });
-  }
-};
-
+  };
 
   // EcPay Handlers
   public static ecPayRequestHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      ecPayRequestSchema.validateSync(req.body);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: {},
+        });
+      }
+    }
     try {
       const { orderId, confirmUrl } = req.body;
 
@@ -299,45 +192,39 @@ public static linePayRefundHandler: RequestHandler = async (req: Request, res: A
         hour12: false,
       });
 
-      const order = await prismaClient.orderLog.findUnique({
-        where: {
-          id: orderId,
-        },
-        include: {
-          orderMeals: true,
-          parentOrder: true,
-        },
-      });
-      if (!order) {
-        return res.status(404).json({ message: '找不到訂單', result: {} });
+      const orders = await OrderProcessor.getOrder(orderId);
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
+      const parentOrder = await OrderProcessor.parentOderHandler(orders);
+
+      if (orders && parentOrder && parentOrder.status === 'SUCCESS') {
+        return this.errorNotFindHandler(res, '訂單已付款');
       }
 
-      if (order.parentOrder?.status === 'SUCCESS') {
-        return res.status(400).json({ message: '訂單已付款', result: {} });
-      }
-
-      console.log('order', order);
-
-      const mealTitles = order.orderMeals
-        .map((meal) => {
-          const details = JSON.parse(meal.mealDetails as string);
-          const title = details.reduce((str: string, detail: { items: []; title: string }) => {
-            const detailTitle = detail.items.reduce(
-              (str: string, item: { title: string }) => str + ', ' + item.title,
-              '',
-            );
-            return str + detail.title + detailTitle;
-          }, `${meal.mealTitle} - [`);
-          return title + ']';
-        })
-        .join('#')
-        .toString();
+      const mealTitles =
+        orders &&
+        orders
+          .map((order) =>
+            order.orderMeals.map((meal) => {
+              const details = JSON.parse(meal.mealDetails as string);
+              const title = details.reduce((str: string, detail: { items: []; title: string }) => {
+                const detailTitle = detail.items.reduce(
+                  (str: string, item: { title: string }) => str + ', ' + item.title,
+                  '',
+                );
+                return str + detail.title + detailTitle;
+              }, `${meal.mealTitle} - [`);
+              return title + ']';
+            }),
+          )
+          .join('#')
+          .toString();
 
       console.log('mealTitles', mealTitles);
 
       const TradeDesc = mealTitles || '';
-      const ItemName = order?.orderMeals.map((meal) => meal.mealTitle).join('#') || '';
-      const TotalAmount = order?.orderMeals.reduce((acc, meal) => acc + meal.price, 0) || 0;
+      const ItemName = orders.map((order) => order.orderMeals.map((meal) => meal.mealTitle)).join('#') || '';
+      const TotalAmount =
+        orders.reduce((total, order) => total + order.orderMeals.reduce((acc, meal) => acc + meal.price, 0), 0) || 0;
 
       const baseParams: BasePaymentParams = {
         MerchantTradeNo: Date.now().toString(),
@@ -430,69 +317,34 @@ public static linePayRefundHandler: RequestHandler = async (req: Request, res: A
 
   public static cashPaymentHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
+      cashPaymentSchema.validateSync(req.body);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).send({
+          message: error.message,
+          result: {},
+        });
+      }
+    }
+    try {
       const { orderId } = req.body;
 
-      console.log('orderId', orderId);
+      const orders = await OrderProcessor.getOrder(orderId);
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
+      const parentOrder = await OrderProcessor.parentOderHandler(orders);
+      if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
+      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) return this.errorNotFindHandler(res, '訂單已付款');
+      console.log('orders', orders);
+      console.log('parentOrder', parentOrder);
+      const payments = await PaymentProcessor.createPaymentLog(orders);
 
-      const orderIds = orderId.split(',');
-      const orders = await prismaClient.orderLog.findMany({
-        where: {
-          id: {
-            in: orderIds,
-          },
-        },
-        include: {
-          orderMeals: true,
-        },
+      await PaymentProcessor.updatePaymentLog({
+        payment: payments,
+        status: 'SUCCESS',
+        gateway: 'CASH',
       });
-
-      if (!orders || orders.length === 0) {
-        return res.status(404).json({ message: '找不到訂單', result: {} });
-      }
-
-      const paymentLogs = await Promise.all(
-        orders.map(async (order) => {
-          const amount = order.orderMeals.reduce((sum, meal) => sum + meal.price, 0);
-
-          let paymentLog = await prismaClient.paymentLog.findFirst({
-            where: {
-              orderId: order.id,
-            },
-          });
-
-          if (paymentLog?.status === 'SUCCESS') {
-            return paymentLog;
-          }
-
-          if (!paymentLog) {
-            paymentLog = await prismaClient.paymentLog.create({
-              data: {
-                orderId: order.id,
-                paymentNo: Date.now().toString(),
-                gateway: 'CASH',
-                price: amount,
-                status: 'SUCCESS',
-              },
-            });
-            console.log('create payment log success');
-          } else {
-            paymentLog = await prismaClient.paymentLog.update({
-              where: {
-                paymentNo: paymentLog.paymentNo,
-              },
-              data: {
-                status: 'SUCCESS',
-                gateway: 'CASH',
-              },
-            });
-            console.log('update payment log success');
-          }
-
-          return paymentLog;
-        }),
-      );
-
-      res.status(200).json({ message: 'Success', result: { paymentLogs, orders } });
+      const paymentLogs = await PaymentProcessor.getPayment(orders);
+      res.status(200).json({ message: 'Success', result: { paymentLogs } });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: null });
     }
