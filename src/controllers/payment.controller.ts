@@ -91,7 +91,7 @@ export class PaymentController {
 
   public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId, orderId, from } = req.query as { transactionId: string; orderId: string; from: string };
+      const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
       console.log('line pay confirm req.query:', req.query);
       if (!transactionId || !orderId) {
         return this.errorNotFindHandler(res, '缺少 transactionId 或 orderId');
@@ -209,6 +209,7 @@ export class PaymentController {
       const orders = await OrderProcessor.getOrder(orderId);
       if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
+      if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
 
       if (orders && parentOrder && parentOrder.status === 'SUCCESS') {
         return this.errorNotFindHandler(res, '訂單已付款');
@@ -232,6 +233,7 @@ export class PaymentController {
           )
           .join('#')
           .toString();
+      console.log('ec pay request parentOrder:', parentOrder);
 
       console.log('mealTitles', mealTitles);
 
@@ -246,11 +248,11 @@ export class PaymentController {
         TotalAmount,
         TradeDesc,
         ItemName,
-        ClientBackURL: `${confirmUrl}?transactionId=${Date.now().toString()}&orderId=${orderId}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
+        ClientBackURL: `${confirmUrl}transactionId=${Date.now().toString()}&orderId=${parentOrder.id}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
       };
       const params = {
         // 皆為選填
-        CustomField1: `OrderID=${orderId}`, // 自訂名稱 1
+        CustomField1: `OrderID=${parentOrder.id}`, // 自訂名稱 1
         PeriodReturnURL: undefined, // 定期定額的回傳網址
         ClientRedirectURL: undefined, // Client 端的轉導網址
         PaymentInfoURL: undefined, // Server 端的回傳網址
@@ -277,7 +279,7 @@ export class PaymentController {
       const data = { ...req.body };
       const { CustomField1 } = data;
 
-      console.log('ecPayReturnHandler data', data);
+      console.log('ecPayReturnHandler data:', data);
 
       const orderId = CustomField1.split('=')[1];
 
@@ -291,37 +293,65 @@ export class PaymentController {
         return res.send('0|ErrorMessage');
       }
 
-      const paymentLog = await prismaClient.paymentLog.findFirst({
-        where: {
-          orderId,
-        },
-      });
+      const orders = await OrderProcessor.getOrder([orderId]);
 
-      if (!paymentLog) {
-        await prismaClient.paymentLog.create({
-          data: {
-            orderId,
-            paymentNo: data.TradeNo,
-            gateway: 'EC_PAY',
-            price: data.TradeAmt,
-            status: 'SUCCESS',
-          },
-        });
-      } else {
-        await prismaClient.paymentLog.update({
-          where: {
-            paymentNo: paymentLog.paymentNo,
-          },
-          data: {
-            status: 'SUCCESS',
-            gateway: 'EC_PAY',
-          },
-        });
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
+
+      console.log('line pay confirm orders', orders);
+
+      const payments = await PaymentProcessor.getPaymentLog(orders);
+      const amount = payments?.reduce((total, payment) => total + payment.price, 0);
+
+      console.log('payments:', payments);
+      console.log('amount:', amount);
+
+      if (!payments || !amount) {
+        return this.errorNotFindHandler(res, '找不到付款紀錄');
       }
+
+      if (await PaymentProcessor.checkPaymentStatus(payments[0].orderId)) {
+        return this.errorNotFindHandler(res, '訂單已付款');
+      }
+
+      await PaymentProcessor.updatePaymentLog({
+        payment: payments,
+        status: 'SUCCESS',
+        gateway: 'EC_PAY',
+      });
 
       res.send('1|OK');
     } catch (error) {
       res.send;
+    }
+  };
+
+  public static ecPayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
+      console.log('ec pay confirm req.query:', req.query);
+      if (!transactionId || !orderId) {
+        return this.errorNotFindHandler(res, '缺少 transactionId 或 orderId');
+      }
+
+      const orders = await OrderProcessor.getOrder([orderId]);
+
+      console.log('ec pay confirm orders:', orders);
+
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
+
+      const paymentLogs = await PaymentProcessor.getPaymentLog(orders);
+
+      console.log('ec pay confirm paymentLogs:', paymentLogs);
+
+      res.status(200).json({
+        message: 'success',
+        result: {
+          paymentLogs,
+        },
+      });
+    } catch (error) {
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
     }
   };
 

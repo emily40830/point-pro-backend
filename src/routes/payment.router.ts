@@ -9,7 +9,7 @@ paymentRouter.get('/line-pay/cancel/:orderId', PaymentController.linePayRefundHa
 
 paymentRouter.post('/ec-pay/request', PaymentController.ecPayRequestHandler);
 paymentRouter.post('/ec-pay/confirm', PaymentController.ecPayReturnHandler);
-
+paymentRouter.get('/ec-pay/confirm', PaymentController.ecPayConfirmHandler);
 paymentRouter.post('/cash/request', PaymentController.cashPaymentHandler);
 
 export default paymentRouter;
