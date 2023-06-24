@@ -23,9 +23,18 @@ export class OrderProcessor {
   static async getOrder(orderIds: string[]): Promise<OrderLogWithMeal[] | null> {
     const orders = await prismaClient.orderLog.findMany({
       where: {
-        id: {
-          in: orderIds,
-        },
+        OR: [
+          {
+            id: {
+              in: orderIds,
+            },
+          },
+          {
+            parentOrderId: {
+              in: orderIds,
+            },
+          },
+        ],
       },
       include: {
         orderMeals: {
@@ -40,30 +49,14 @@ export class OrderProcessor {
     return orders;
   }
 
-  static async parentOderHandler(orders: OrderLogWithMeal[]): Promise<OrderLogWithMeal | null> {
-    if (!orders) {
+  static async getChildOrders(parentOrder: OrderLogWithMeal): Promise<OrderLogWithMeal[] | null> {
+    if (!parentOrder) {
       throw new Error('No orders found');
     }
 
-    if (orders.length > 1) {
-      const updateOrder = await Promise.all(
-        orders.map((order) =>
-          prismaClient.orderLog.update({
-            where: { id: order.id },
-            data: { parentOrderId: orders[0].id },
-          }),
-        ),
-      );
-
-      const parentOrder = (await OrderProcessor.getOrder([orders[0].id])) as OrderLogWithMeal[];
-
-      return parentOrder[0];
-    }
-
-    const parentOrder = await prismaClient.orderLog.update({
-      where: { id: orders[0].id },
-      data: {
-        parentOrderId: orders[0].id,
+    const orders = await prismaClient.orderLog.findMany({
+      where: {
+        parentOrderId: parentOrder.id,
       },
       include: {
         orderMeals: {
@@ -72,16 +65,83 @@ export class OrderProcessor {
           },
         },
         parentOrder: true,
+        childOrders: {
+          include: {
+            orderMeals: {
+              include: {
+                meal: true,
+              },
+            },
+          },
+        },
       },
     });
-
-    return parentOrder;
+    return orders;
   }
+
+  static async parentOderHandler(orders: OrderLogWithMeal[]): Promise<OrderLogWithMeal | null> {
+    if (!orders) {
+      throw new Error('No orders found');
+    }
+
+    await Promise.all(
+      orders.map((order) =>
+        prismaClient.orderLog.update({
+          where: { id: order.id },
+          data: { parentOrderId: orders[0].id },
+        }),
+      ),
+    );
+
+    const fullOrders = await OrderProcessor.getOrder(orders.map((order) => order.id));
+    const parentOrderIndex = fullOrders && fullOrders.findIndex((order) => order.id === orders[0].id);
+
+    return fullOrders && fullOrders[parentOrderIndex as number];
+  }
+
+  static createLinePayOrder = (
+    orders: OrderLogWithMeal[],
+    orderId: string,
+    confirmUrl: string,
+    cancelUrl: string,
+  ): RequestRequestBody => {
+    return {
+      amount: PaymentProcessor.calculateTotalAmount(orders),
+      currency: 'TWD',
+      orderId,
+      packages: orders.flatMap((order) =>
+        order.orderMeals.map((meal) => {
+          const mealDetails = JSON.parse(meal.mealDetails as string);
+          const mealDetailPrice = mealDetails.reduce((total: number, detail: { items: [] }) => {
+            const detailPrice = detail.items.reduce((total: number, item: { price: number }) => total + item.price, 0);
+            return total + detailPrice;
+          }, 0);
+          return {
+            id: meal.mealId,
+            amount: meal.price,
+            products: [
+              {
+                name: meal.mealTitle,
+                imageUrl: meal.meal.coverUrl,
+                quantity: meal.amount,
+                price: meal.meal.price + mealDetailPrice,
+              },
+            ] as Product[],
+          };
+        }),
+      ),
+      redirectUrls: {
+        confirmUrl, // Client端的轉導網址 (付款完成後，會導回此網址)
+        cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
+      },
+    };
+  };
 }
 
 export class PaymentProcessor {
-  static async getPayment(orders: OrderLogWithMeal[]): Promise<PaymentLog[] | null> {
+  static async getPaymentLog(orders: OrderLogWithMeal[]): Promise<PaymentLog[] | null> {
     const orderId = orders.map((order) => order.id);
+    console.log(orderId);
     const paymentLog = await prismaClient.paymentLog.findMany({
       where: {
         orderId: {
@@ -105,30 +165,18 @@ export class PaymentProcessor {
   }
 
   static async createPaymentLog(orders: OrderLogWithMeal[]): Promise<PaymentLog[]> {
-    if (orders.length > 1) {
-      const paymentLog = orders.map((order) => {
-        return prismaClient.paymentLog.create({
-          data: {
-            paymentNo: randomUUID(),
-            orderId: order.id,
-            price: order.orderMeals.reduce((acc, cur) => acc + cur.price * cur.amount, 0),
-            status: 'UNPAID',
-            gateway: 'NULL',
-          },
-        });
+    const paymentLog = orders.map(async (order) => {
+      return await prismaClient.paymentLog.create({
+        data: {
+          paymentNo: randomUUID(),
+          orderId: order.id,
+          price: order.orderMeals.reduce((acc, cur) => acc + cur.price, 0),
+          status: 'UNPAID',
+          gateway: 'NULL',
+        },
       });
-      return Promise.all(paymentLog);
-    }
-    const paymentLog = await prismaClient.paymentLog.create({
-      data: {
-        paymentNo: randomUUID(),
-        orderId: orders[0].id,
-        price: orders[0].orderMeals.reduce((acc, cur) => acc + cur.price * cur.amount, 0),
-        status: 'UNPAID',
-        gateway: 'NULL',
-      },
     });
-    return [paymentLog];
+    return await Promise.all(paymentLog);
   }
 
   static async updatePaymentLog({ payment, gateway, status }: UpdatePaymentLogBody): Promise<PaymentLog[]> {
@@ -168,23 +216,46 @@ export class PaymentProcessor {
     return paymentLog;
   }
 
-  static async checkPaymentStatus(orderId: string): Promise<boolean> {
-    const order = await prismaClient.orderLog.findUnique({
-      where: { id: orderId },
+  static async checkPaymentStatus(parentOrderId: string): Promise<boolean> {
+    const orders = await prismaClient.orderLog.findMany({
+      where: {
+        OR: [
+          {
+            id: {
+              in: parentOrderId,
+            },
+          },
+          {
+            parentOrderId: {
+              in: parentOrderId,
+            },
+          },
+        ],
+      },
       include: { paymentLogs: true },
     });
 
-    if (!order) {
-      throw new Error(`Order with id ${orderId} not found`);
+    console.log('orders for check payment status', orders);
+
+    if (!orders) {
+      throw new Error(`Order with id ${parentOrderId} not found`);
     }
 
-    if (!order.paymentLogs) {
-      throw new Error(`No payment log found for order with id ${orderId}`);
-    }
+    const state = orders
+      .filter((order) => order.paymentLogs.length > 0)
+      .reduce(
+        (acc, cur) =>
+          acc +
+          cur.paymentLogs.reduce((sum, paymentLog) => sum + (paymentLog.status === OrderStatus.SUCCESS ? 1 : 0), 0),
+        0,
+      );
 
-    const state = order.paymentLogs.filter((paymentLog) => paymentLog.status === 'SUCCESS');
+    const totalPaymentLength = orders.filter((order) => order.paymentLogs.length > 0).length;
 
-    return state.length > 0;
+    console.log('state:', state);
+    console.log('totalPaymentLength:', totalPaymentLength);
+
+    return state > 0 && totalPaymentLength > 0 && state === totalPaymentLength;
   }
 
   static calculateTotalAmount(orders: OrderLogWithMeal[]): number {
@@ -194,43 +265,6 @@ export class PaymentProcessor {
     );
   }
 
-  static createLinePayOrder = (
-    orders: OrderLogWithMeal[],
-    orderId: string,
-    confirmUrl: string,
-    cancelUrl: string,
-  ): RequestRequestBody => {
-    return {
-      amount: orders.reduce((total, order) => total + order.orderMeals.reduce((sum, meal) => sum + meal.price, 0), 0),
-      currency: 'TWD',
-      orderId,
-      packages: orders.flatMap((order) =>
-        order.orderMeals.map((meal) => {
-          const mealDetails = JSON.parse(meal.mealDetails as string);
-          const mealDetailPrice = mealDetails.reduce((total: number, detail: { items: [] }) => {
-            const detailPrice = detail.items.reduce((total: number, item: { price: number }) => total + item.price, 0);
-            return total + detailPrice;
-          }, 0);
-          return {
-            id: meal.mealId,
-            amount: meal.price,
-            products: [
-              {
-                name: meal.mealTitle,
-                imageUrl: meal.meal.coverUrl,
-                quantity: meal.amount,
-                price: meal.meal.price + mealDetailPrice,
-              },
-            ] as Product[],
-          };
-        }),
-      ),
-      redirectUrls: {
-        confirmUrl, // Client端的轉導網址 (付款完成後，會導回此網址)
-        cancelUrl, // Client 端的轉導網址 (付款取消後，會導回此網址)
-      },
-    };
-  };
   static async errorNotFindHandler(res: ApiResponse, message: string) {
     res.status(400).json({ message, result: {} });
   }

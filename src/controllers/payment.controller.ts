@@ -65,19 +65,22 @@ export class PaymentController {
       let linePayOrder;
 
       const orders = await OrderProcessor.getOrder(orderId);
-      if (!orders || !orders[0].parentOrderId) return this.errorNotFindHandler(res, '訂單不存在');
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
       if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
-      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) return this.errorNotFindHandler(res, '訂單已付款');
-      linePayOrder = PaymentProcessor.createLinePayOrder(orders, parentOrder.id, confirmUrl, cancelUrl);
-
-      console.log('linePayFormat:', linePayOrder);
+      const childOrders = await OrderProcessor.getChildOrders(parentOrder);
+      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) {
+        return this.errorNotFindHandler(res, '訂單已付款');
+      }
+      if (!childOrders) return this.errorNotFindHandler(res, '訂單不存在');
+      linePayOrder = OrderProcessor.createLinePayOrder(childOrders, parentOrder.id, confirmUrl, cancelUrl);
 
       const response = await PaymentController.linePayClient.request.send({
         body: linePayOrder,
       });
-
-      console.log('request return response:', response);
+      console.log('line pay request parentOrder:', parentOrder);
+      const payments = await PaymentProcessor.createPaymentLog(orders);
+      console.log('line pay request payments:', payments);
 
       res.status(200).json({ message: 'line-pay checkout', result: response });
     } catch (error) {
@@ -88,21 +91,30 @@ export class PaymentController {
 
   public static linePayConfirmHandler: RequestHandler = async (req: Request, res: ApiResponse) => {
     try {
-      const { transactionId, orderId } = req.query as { transactionId: string; orderId: string };
-
+      const { transactionId, orderId, from } = req.query as { transactionId: string; orderId: string; from: string };
+      console.log('line pay confirm req.query:', req.query);
       if (!transactionId || !orderId) {
         return this.errorNotFindHandler(res, '缺少 transactionId 或 orderId');
       }
 
-      const parentOrder = await OrderProcessor.getOrder([orderId]);
+      const orders = await OrderProcessor.getOrder([orderId]);
 
-      if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
+      if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
 
-      const payments = await PaymentProcessor.getPayment(parentOrder);
-      const amount = payments?.reduce((total, payment) => payment.price, 0);
+      console.log('line pay confirm orders', orders);
+
+      const payments = await PaymentProcessor.getPaymentLog(orders);
+      const amount = payments?.reduce((total, payment) => total + payment.price, 0);
+
+      console.log('payments:', payments);
+      console.log('amount:', amount);
 
       if (!payments || !amount) {
         return this.errorNotFindHandler(res, '找不到付款紀錄');
+      }
+
+      if (await PaymentProcessor.checkPaymentStatus(payments[0].orderId)) {
+        return this.errorNotFindHandler(res, '訂單已付款');
       }
 
       const response = await PaymentController.linePayClient.confirm.send({
@@ -119,11 +131,13 @@ export class PaymentController {
         return this.errorNotFindHandler(res, 'Invalid transaction ID');
       }
 
-      const paymentLogs = PaymentProcessor.updatePaymentLog({
+      await PaymentProcessor.updatePaymentLog({
         payment: payments,
         status: 'SUCCESS',
         gateway: 'LINE_PAY',
       });
+
+      const paymentLogs = await PaymentProcessor.getPaymentLog(orders);
 
       res.status(200).json({
         message: 'success',
@@ -334,8 +348,6 @@ export class PaymentController {
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
       if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
       if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) return this.errorNotFindHandler(res, '訂單已付款');
-      console.log('orders', orders);
-      console.log('parentOrder', parentOrder);
       const payments = await PaymentProcessor.createPaymentLog(orders);
 
       await PaymentProcessor.updatePaymentLog({
@@ -343,7 +355,7 @@ export class PaymentController {
         status: 'SUCCESS',
         gateway: 'CASH',
       });
-      const paymentLogs = await PaymentProcessor.getPayment(orders);
+      const paymentLogs = await PaymentProcessor.getPaymentLog(orders);
       res.status(200).json({ message: 'Success', result: { paymentLogs } });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: null });
