@@ -1,3 +1,4 @@
+import os from 'os';
 import { Request, RequestHandler, Response } from 'express';
 import { mixed, object, string } from 'yup';
 import { createLinePayClient } from 'line-pay-merchant';
@@ -242,13 +243,15 @@ export class PaymentController {
       const TotalAmount =
         orders.reduce((total, order) => total + order.orderMeals.reduce((acc, meal) => acc + meal.price, 0), 0) || 0;
 
+      let timestamp = Date.now().toString();
+      timestamp = timestamp.padStart(20, '0');
       const baseParams: BasePaymentParams = {
-        MerchantTradeNo: Date.now().toString(),
+        MerchantTradeNo: timestamp,
         MerchantTradeDate: formattedDate,
         TotalAmount,
         TradeDesc,
         ItemName,
-        ClientBackURL: `${confirmUrl}transactionId=${Date.now().toString()}&orderId=${parentOrder.id}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
+        ClientBackURL: `${confirmUrl}transactionId=${timestamp}&orderId=${parentOrder.id}`, // Client 端的轉導網址 (付款完成後，會導回此網址)
       };
       const params = {
         // 皆為選填
@@ -403,7 +406,7 @@ PaymentController.merchant = new Merchant('Test', {
   MerchantID: process.env.EC_PAY_MERCHANT_ID as string,
   HashKey: process.env.EC_PAY_HASH_KEY as string,
   HashIV: process.env.EC_PAY_HASH_IV as string,
-  ReturnURL: `${process.env.BACKEND_URL}/payment/ec-pay/confirm`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
+  ReturnURL: `${process.env.BACKEND_URL}/api/payment/ec-pay/confirm`, // Server 端的轉導網址 (付款完成後，POST接受綠界的付款結果訊息，並回應接收訊息)
 });
 
 export default PaymentController;
