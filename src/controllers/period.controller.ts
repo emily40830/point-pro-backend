@@ -158,7 +158,7 @@ class PeriodController {
 
     res.status(200).send({
       message: 'Successfully get periods',
-      result: datePeriodsWithAmount,
+      result: datePeriodsWithAmount.sort((a, b) => a.date.valueOf() - b.date.valueOf()),
     });
   };
 }
