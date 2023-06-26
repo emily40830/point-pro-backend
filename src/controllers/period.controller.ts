@@ -127,13 +127,13 @@ class PeriodController {
     });
 
     const datePeriodsWithAmount = periodsWithAmount.reduce<DatePeriodInfo[]>((prev, curr) => {
-      const targets = prev.filter((d) => d.date.toDateString() === curr.periodStartedAt.toDateString());
+      const targets = prev.filter(
+        (d) => d.date.toLocaleDateString('zh-tw') === curr.periodStartedAt.toLocaleDateString('zh-tw'),
+      );
+
       if (targets.length === 0) {
-        console.log(curr.periodStartedAt.toDateString());
-        console.log(new Date(curr.periodStartedAt.toDateString()));
-        const newDate = new Date(curr.periodStartedAt.toDateString());
         const newDatePeriod: DatePeriodInfo = {
-          date: newDate,
+          date: curr.periodStartedAt,
           periods: [curr],
           totalAmount: curr.amount,
           totalAvailable: curr.available,
@@ -150,7 +150,10 @@ class PeriodController {
         totalAvailable: target.totalAvailable + curr.available,
       };
 
-      return [...prev.filter((d) => d.date.toDateString() !== curr.periodStartedAt.toDateString()), newTarget];
+      return [
+        ...prev.filter((d) => d.date.toLocaleDateString('zh-tw') !== curr.periodStartedAt.toLocaleDateString('zh-tw')),
+        newTarget,
+      ];
     }, []);
 
     res.status(200).send({
