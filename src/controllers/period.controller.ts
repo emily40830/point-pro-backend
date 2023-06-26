@@ -78,6 +78,7 @@ class PeriodController {
   };
 
   public static getPeriods = async (req: AuthRequest, res: ApiResponse<DatePeriodInfo[]>) => {
+    console.log('date', new Date());
     const periods = await prismaClient.period.findMany({
       where: {
         startedAt: {
