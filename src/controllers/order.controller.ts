@@ -1,68 +1,29 @@
 import { RequestHandler } from 'express';
 import { ApiResponse } from '../types/shared';
 import { prismaClient } from '../helpers';
-import { array, mixed, number, object, string } from 'yup';
 import { AuthRequest } from '../types/shared';
 import { OrderStatus, OrderType } from '@prisma/client';
+import {
+  orderIdValidatedSchema,
+  reservationLogValidatedSchema,
+  createOrderReqBodySchema,
+  orderStatusValidatedSchema,
+  updateOrderReqBodySchema,
+} from '../schemas';
 
 class OrderController {
   public static createOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
-    // Validation
-    const reqAuthSchema = object({
-      reservationLogId: string().uuid(),
-    });
-    const reqBodySchema = object({
-      orderMeals: array()
-        .of(
-          object({
-            id: string().required(),
-            amount: number().required(),
-            price: number().required(),
-            title: string().required(),
-            specialties: array().of(
-              object({
-                id: string().required(),
-                title: string().required(),
-                type: string().required(),
-                items: array().of(
-                  object({
-                    id: string().required(),
-                    title: string().required(),
-                    price: number().required(),
-                  }),
-                ),
-              }),
-            ),
-          }),
-        )
-        .required(),
-    });
-
     try {
-      reqAuthSchema.validateSync(req.auth);
-      reqBodySchema.validateSync(req.body);
-    } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).send({
-          message: error.message,
-          result: {},
-        });
-      }
-    }
+      const { reservationLogId } = reservationLogValidatedSchema.cast(req.auth);
+      const { orderMeals = [] } = createOrderReqBodySchema.cast(req.body);
 
-    // DB
-    try {
-      const { reservationLogId } = reqAuthSchema.cast(req.auth);
-      const { orderMeals = [] } = reqBodySchema.cast(req.body);
-      const orderLog = await prismaClient.orderLog.create({
+      const order = await prismaClient.orderLog.create({
         data: {
           reservationLogId,
-          // [TODO] takeout
-          type: reservationLogId ? 'DineIn' : 'TakeOut',
-          status: 'PENDING',
+          type: reservationLogId ? OrderType.DineIn : OrderType.TakeOut,
+          status: OrderStatus.PENDING,
           orderMeals: {
             createMany: {
-              // [TODO] type
               data: orderMeals.map((meal) => ({
                 mealId: meal.id,
                 mealTitle: meal.title,
@@ -73,11 +34,61 @@ class OrderController {
             },
           },
         },
+        select: {
+          id: true,
+          status: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+          paymentLogs: true,
+          orderMeals: {
+            select: {
+              id: true,
+              price: true,
+              amount: true,
+              servedAmount: true,
+              mealDetails: true,
+              meal: {
+                select: {
+                  id: true,
+                  title: true,
+                  price: true,
+                  categories: {
+                    select: {
+                      category: {
+                        select: {
+                          id: true,
+                          title: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
+
+      const result = {
+        ...order,
+        orderMeals:
+          order.orderMeals.map(({ id, mealDetails, price, amount, servedAmount, meal }) => ({
+            id,
+            amount,
+            servedAmount,
+            price,
+            mealPrice: meal.price,
+            mealId: meal.id,
+            title: meal.title,
+            categories: meal.categories.map((category) => ({ ...category.category })),
+            specialties: JSON.parse(mealDetails as string), // [TODO] mealDetails type,
+          })) ?? [],
+      };
 
       return res.status(201).send({
         message: 'success',
-        result: orderLog,
+        result,
       });
     } catch (error) {
       next(error);
@@ -85,25 +96,8 @@ class OrderController {
   };
   public static getOrdersHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
     if (req.auth.role === 'USER') {
-      // Validation
-      const reqAuthSchema = object({
-        reservationLogId: string().uuid().required(),
-      });
-
       try {
-        reqAuthSchema.validateSync(req.auth);
-      } catch (error) {
-        if (error instanceof Error) {
-          return res.status(400).send({
-            message: error.message,
-            result: [],
-          });
-        }
-      }
-
-      // DB
-      try {
-        const { reservationLogId } = reqAuthSchema.cast(req.auth);
+        const { reservationLogId } = reservationLogValidatedSchema.cast(req.auth);
 
         const orders = await prismaClient.orderLog.findMany({
           select: {
@@ -170,25 +164,8 @@ class OrderController {
     }
 
     if (req.auth.role === 'MERCHANT') {
-      // Validation
-      const reqQuerySchema = object({
-        status: mixed().oneOf(Object.values(OrderStatus)).required(),
-      });
-
       try {
-        reqQuerySchema.validateSync(req.query);
-      } catch (error) {
-        if (error instanceof Error) {
-          return res.status(400).send({
-            message: error.message,
-            result: [],
-          });
-        }
-      }
-
-      // DB
-      try {
-        const { status } = reqQuerySchema.cast(req.query);
+        const { status } = orderStatusValidatedSchema.cast(req.query);
 
         const orders = await prismaClient.orderLog.findMany({
           select: {
@@ -272,83 +249,28 @@ class OrderController {
       }
     }
   };
-  public static deleteOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
-    // Validation
-    const reqQuerySchema = object({
-      orderId: string().uuid().required(),
-    });
+  public static cancelOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
     try {
-      reqQuerySchema.validateSync(req.query);
-    } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).send({
-          message: error.message,
-          result: {},
-        });
-      }
-    }
+      const { orderId } = orderIdValidatedSchema.cast(req.query);
 
-    // DB
-    try {
-      const { orderId } = reqQuerySchema.cast(req.query);
-
-      await prismaClient.orderLog.update({
+      const orderLog = await prismaClient.orderLog.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.CANCEL,
         },
       });
 
-      return res.status(200).send();
+      return res.status(200).send({
+        message: 'success',
+        result: orderLog,
+      });
     } catch (error) {
       next(error);
     }
   };
   public static updateOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
-    // Validation
-    const reqBodySchema = object({
-      id: string().uuid().required(),
-      status: string().oneOf(Object.values(OrderStatus)).required(),
-      type: string().oneOf(Object.values(OrderType)).required(),
-      orderMeals: array()
-        .of(
-          object({
-            id: string().required(),
-            amount: number().required(),
-            servedAmount: number().required(),
-            price: number().required(),
-            specialties: array().of(
-              object({
-                id: string().required(),
-                title: string().required(),
-                type: string().required(),
-                items: array().of(
-                  object({
-                    id: string().required(),
-                    title: string().required(),
-                    price: number().required(),
-                  }),
-                ),
-              }),
-            ),
-          }),
-        )
-        .required(),
-    });
     try {
-      reqBodySchema.validateSync(req.body);
-    } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).send({
-          message: error.message,
-          result: {},
-        });
-      }
-    }
-
-    // DB
-    try {
-      const { id, status, orderMeals } = reqBodySchema.cast(req.body);
+      const { id, status, orderMeals } = updateOrderReqBodySchema.cast(req.body);
 
       // are meals all served
       let isAllServed = true;
@@ -409,8 +331,6 @@ class OrderController {
         result,
       });
     } catch (error) {
-      console.log({ error });
-
       next(error);
     }
   };
