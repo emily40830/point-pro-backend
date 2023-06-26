@@ -1,20 +1,53 @@
-import { object, string, array, number } from 'yup';
+import { OrderStatus, OrderType } from '@prisma/client';
+import { object, string, array, number, mixed } from 'yup';
 
-export const orderSchema = object().shape({
-  status: string().required(),
-  type: string().required(),
-  reservationId: string().optional(),
-  orderMeals: array()
-    .of(
-      object().shape({
-        mealId: string().required(),
-        mealTitle: string().required(),
+export const specialtiesValidatedSchema = array().of(
+  object({
+    id: string().required(),
+    title: string().required(),
+    type: string().required(),
+    items: array().of(
+      object({
+        id: string().required(),
+        title: string().required(),
         price: number().required(),
-        specialities: object().required(),
-        categories: array().of(string()).required(),
-        amount: number().required(),
-        servedAmount: number().required(),
       }),
-    )
-    .required(),
+    ),
+  }),
+);
+
+export const orderMealsValidatedSchema = array()
+  .of(
+    object({
+      id: string().required(),
+      amount: number().required(),
+      price: number().required(),
+      title: string().required(),
+      servedAmount: number().required(),
+      specialties: specialtiesValidatedSchema,
+    }),
+  )
+  .required();
+
+export const orderStatusValidatedSchema = object({
+  status: mixed().oneOf(Object.values(OrderStatus)).required(),
+});
+
+export const reservationLogValidatedSchema = object({
+  reservationLogId: string().uuid(),
+});
+
+export const orderIdValidatedSchema = object({
+  orderId: string().uuid().required(),
+});
+
+export const createOrderReqBodySchema = object({
+  orderMeals: orderMealsValidatedSchema,
+});
+
+export const updateOrderReqBodySchema = object({
+  id: string().uuid().required(),
+  status: string().oneOf(Object.values(OrderStatus)).required(),
+  type: string().oneOf(Object.values(OrderType)).required(),
+  orderMeals: orderMealsValidatedSchema,
 });
