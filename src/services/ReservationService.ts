@@ -1,19 +1,14 @@
 import { Period, Prisma, ReservationType, Seat, SeatPeriod, SeatSibling } from '@prisma/client';
 import { dayjs, prismaClient } from '../helpers';
-import { v4 as uuidv4 } from 'uuid';
-
-type CreateOnlineBookingRecord = {
-  status: number;
-  details: string;
-  reservationLogId: string;
-};
+import { CreateRecord } from '../types/reservation';
 
 export class ReservationService {
   static createOnlineBookingRecord = async (
+    logId: string,
     periodStartedAt: Date,
     amount: number,
     options: { [key: string]: any },
-  ): Promise<CreateOnlineBookingRecord> => {
+  ): Promise<CreateRecord> => {
     if (amount === 5 || amount === 6 || amount > 10) {
       return {
         status: 400,
@@ -74,6 +69,7 @@ export class ReservationService {
       targetSeatPeriod = twoSeats[0];
 
       const createReservationLog: Prisma.ReservationLogCreateInput = {
+        id: logId,
         reservedAt: new Date(),
         type: 'OnlineBooking' as ReservationType,
         options,
@@ -114,10 +110,8 @@ export class ReservationService {
 
       targetSeatPeriod = twoSeatPeriods[0];
 
-      const reservationLogId = uuidv4();
-
       const createReservationLog: Prisma.ReservationLogCreateInput = {
-        id: reservationLogId,
+        id: logId,
         reservedAt: new Date(),
         type: 'OnlineBooking',
         options,
@@ -134,7 +128,7 @@ export class ReservationService {
             connect: { id: targetSeatPeriod.periodId },
           },
           reservationLog: {
-            connect: { id: reservationLogId },
+            connect: { id: logId },
           },
         },
         {
@@ -145,7 +139,7 @@ export class ReservationService {
             connect: { id: targetSeatPeriod.periodId },
           },
           reservationLog: {
-            connect: { id: reservationLogId },
+            connect: { id: logId },
           },
         },
       ];
@@ -193,6 +187,7 @@ export class ReservationService {
       targetSeatPeriod = targetSeatPeriods[0];
 
       const createReservationLog: Prisma.ReservationLogCreateInput = {
+        id: logId,
         reservedAt: new Date(),
         type: 'OnlineBooking',
         startOfMeal: null,
@@ -231,6 +226,106 @@ export class ReservationService {
       },
       select: {
         reservationLogId: true,
+      },
+    });
+
+    if (reservation && reservation.reservationLogId) {
+      return {
+        status: 201,
+        details: '',
+        reservationLogId: reservation.reservationLogId,
+      };
+    }
+
+    return {
+      status: 500,
+      details: 'Create reservation failed',
+      reservationLogId: '',
+    };
+  };
+
+  static createPhoneBookingRecord = async (
+    logId: string,
+    periodStartedAt: Date,
+    seats: string[],
+    options: { [key: string]: any },
+  ): Promise<CreateRecord> => {
+    const period = await prismaClient.period.findFirst({
+      where: {
+        startedAt: dayjs(periodStartedAt).toISOString(),
+      },
+    });
+
+    if (!period) {
+      return {
+        status: 400,
+        details: `Can not found period started at ${periodStartedAt}`,
+        reservationLogId: '',
+      };
+    }
+
+    const seatPeriods = await prismaClient.seatPeriod.findMany({
+      where: {
+        periodId: period?.id,
+        canBooked: true,
+        seat: {
+          id: {
+            in: seats,
+          },
+        },
+      },
+      include: {
+        seat: true,
+        period: true,
+      },
+    });
+
+    if (seatPeriods.length === 0) {
+      return {
+        status: 400,
+        details: `Some seats may not be reserved`,
+        reservationLogId: '',
+      };
+    }
+
+    const createReservationLog: Prisma.ReservationLogCreateInput = {
+      id: logId,
+      reservedAt: new Date(),
+      type: 'PhoneBooking',
+      startOfMeal: null,
+      endOfMeal: null,
+      options,
+    };
+
+    const createReservationSeats: Prisma.ReservationSeatCreateInput[] = seatPeriods.map((seatPeriod) => ({
+      seat: {
+        connect: { id: seatPeriod.seatId },
+      },
+      period: {
+        connect: { id: seatPeriod.periodId },
+      },
+      reservationLog: {
+        connect: { id: logId },
+      },
+    }));
+
+    const updateSeatPeriod: Prisma.SeatPeriodUpdateInput = {
+      canBooked: { set: false },
+    };
+
+    await prismaClient.$transaction([
+      prismaClient.reservationLog.create({ data: createReservationLog }),
+      ...createReservationSeats.map((reservationSeat) =>
+        prismaClient.reservationSeat.create({ data: reservationSeat }),
+      ),
+      ...seatPeriods.map((seatPeriod) =>
+        prismaClient.seatPeriod.update({ data: updateSeatPeriod, where: { id: seatPeriod.id } }),
+      ),
+    ]);
+
+    const reservation = await prismaClient.reservationSeat.findUnique({
+      where: {
+        id: logId,
       },
     });
 

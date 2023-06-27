@@ -1,9 +1,12 @@
-import { date, number, object, string } from 'yup';
+import { array, date, number, object, string } from 'yup';
 import { prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 import { AuthService, ReservationService } from '../services';
 import { ReservationType } from '@prisma/client';
+
+import { v4 as uuidv4 } from 'uuid';
+import { CreateRecord } from '../types/reservation';
 
 type ReservationInfo = {
   id: string;
@@ -35,11 +38,15 @@ type CreateReservation = {
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
+    let isMerchant = false;
+    if (req.auth && req.auth.role !== 'USER') {
+      isMerchant = true;
+    }
     const inputSchema = object({
-      type: string().required().oneOf(['OnlineBooking', 'PhoneBooking']),
+      type: string().required().oneOf(['OnlineBooking', 'PhoneBooking', 'WalkInSeating']),
       options: object().default(() => {}),
       amount: number().min(1).required(),
-      // seats: array(string().required()).optional().default([]),
+      seats: array(string().required()).optional().default([]),
       periodStartedAt: date().required(),
     });
 
@@ -52,12 +59,36 @@ class ReservationController {
       });
     }
 
-    const { options, amount, periodStartedAt } = inputSchema.cast(req.body);
-    const { status, reservationLogId, details } = await ReservationService.createOnlineBookingRecord(
-      periodStartedAt,
-      amount,
-      options,
-    );
+    const { type, options, amount, seats, periodStartedAt } = inputSchema.cast(req.body);
+
+    if (isMerchant && !seats) {
+      res.status(400).json({
+        message: 'Invalid Seats',
+        result: null,
+      });
+    }
+    const reservationLogId = uuidv4();
+    let createReservationResult: CreateRecord = {
+      status: 0,
+      details: '',
+      reservationLogId,
+    };
+    switch (type) {
+      case 'OnlineBooking':
+        createReservationResult = await ReservationService.createOnlineBookingRecord(
+          reservationLogId,
+          periodStartedAt,
+          amount,
+          options,
+        );
+      case 'PhoneBooking':
+        createReservationResult = await ReservationService.createPhoneBookingRecord(
+          reservationLogId,
+          periodStartedAt,
+          seats,
+          options,
+        );
+    }
 
     if (reservationLogId) {
       const reservation = await prismaClient.reservationLog.findUnique({
@@ -97,8 +128,8 @@ class ReservationController {
         });
       }
     } else {
-      res.status(status).json({
-        message: details,
+      res.status(createReservationResult.status).json({
+        message: createReservationResult.details,
         result: null,
       });
     }
