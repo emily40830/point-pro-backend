@@ -81,7 +81,6 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       console.log('reservation', reservation);
 
       req.auth = { ...reservation, role: 'USER' };
-      next();
     } catch (error) {
       errors.push(error as string);
     }
@@ -93,6 +92,14 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       });
     }
   }
+
+  if (!(excludes && excludes.includes(req.path)) && !req.auth) {
+    res.status(403).json({
+      message: 'forbidden',
+      result: null,
+    });
+  }
+  next();
 };
 
 export const errorMiddleware = (error: Error, req: Request, res: ApiResponse, next: NextFunction) => {

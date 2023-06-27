@@ -94,12 +94,12 @@ class AuthController {
       await inputSchema.validate(req.body);
     } catch (error) {
       if (error instanceof Error) {
-        res.status(400).json({
+        return res.status(400).json({
           message: `invalid input:${error.message}`,
           result: null,
         });
       }
-      res.status(500).json({
+      return res.status(500).json({
         message: (error as Error).message,
         result: null,
       });
@@ -109,20 +109,20 @@ class AuthController {
 
     try {
       const { authToken, member } = await AuthService.login({ account, password });
-      res.status(200).send({
+      return res.status(200).json({
         message: 'login successfully',
         result: { authToken, member },
       });
     } catch (error) {
       console.log(error);
       if (error instanceof Error && 'code' in error) {
-        res.status(error.code as number).send({
+        return res.status(error.code as number).json({
           message: error.message,
           result: null,
         });
       }
 
-      res.status(500).send({
+      return res.status(500).json({
         message: (error as Error).message,
         result: null,
       });
