@@ -38,19 +38,17 @@ export const sessionMiddleware = session({
 });
 
 export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res: ApiResponse, next: NextFunction) => {
-  // console.log(req.path);
-  // console.log(excludes);
+  if (excludes && excludes.includes(req.path)) {
+    return next();
+  }
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token && !(excludes && excludes.includes(req.path))) {
-    res.status(401).json({
+  //Authorization: 'Bearer TOKEN'
+  if (!token) {
+    res.status(401).send({
       message: 'invalid token',
       result: null,
     });
-  }
-
-  if (token) {
-    //Authorization: 'Bearer TOKEN'
-
+  } else {
     let decoded: string | jwt.JwtPayload = '';
 
     // console.log('decode', decoded);
@@ -66,7 +64,6 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       // console.log('user', user);
 
       req.auth = user;
-      console.log('req.auth', req.auth);
       next();
     } catch (error) {
       errors.push(error as string);
@@ -88,20 +85,12 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
     }
 
     if (errors.length > 1) {
-      res.status(403).json({
+      res.status(403).send({
         message: errors.join('; '),
         result: null,
       });
     }
   }
-
-  if (!(excludes && excludes.includes(req.path)) && !req.auth) {
-    res.status(403).json({
-      message: 'forbidden',
-      result: null,
-    });
-  }
-  next();
 };
 
 export const errorMiddleware = (error: Error, req: Request, res: ApiResponse, next: NextFunction) => {
