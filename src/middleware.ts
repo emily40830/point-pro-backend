@@ -66,6 +66,7 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       // console.log('user', user);
 
       req.auth = user;
+      console.log('req.auth', req.auth);
       next();
     } catch (error) {
       errors.push(error as string);
@@ -81,6 +82,7 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
       console.log('reservation', reservation);
 
       req.auth = { ...reservation, role: 'USER' };
+      next();
     } catch (error) {
       errors.push(error as string);
     }

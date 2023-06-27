@@ -53,35 +53,38 @@ class AuthController {
       await inputSchema.validate(req.body);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(400).send({
+        res.status(400).json({
           message: `invalid input:${error.message}`,
           result: null,
         });
       }
     }
     const { account, email, password } = inputSchema.cast(req.body);
-
+    console.log(account, email, password);
     // check member existence
     if (
       (await AuthService.getMemberByAccountOrEmail(account)) ||
       (await AuthService.getMemberByAccountOrEmail(email))
     ) {
-      return res.status(400).send({
+      res.status(400).send({
         message: 'this account or email cannot be used',
         result: null,
       });
+    } else {
+      // const loggedInMembers = (req.session as Session)[appId]?.members || [];
+      const { member, authToken } = await AuthService.registerMember({
+        account,
+        email,
+        password,
+      });
+      res.status(201).send({
+        message: 'successfully register a new member',
+        result: { authToken },
+      });
     }
-
-    // const loggedInMembers = (req.session as Session)[appId]?.members || [];
-    const { member, authToken } = await AuthService.registerMember({
-      account,
-      email,
-      password,
-    });
-
-    return res.status(201).send({
-      message: 'successfully register a new member',
-      result: { authToken },
+    res.status(400).send({
+      message: 'Can not register',
+      result: null,
     });
   };
   public static loginHandler: RequestHandler = async (req, res: ApiResponse) => {
