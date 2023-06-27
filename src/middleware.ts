@@ -40,18 +40,17 @@ export const sessionMiddleware = session({
 export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res: ApiResponse, next: NextFunction) => {
   // console.log(req.path);
   // console.log(excludes);
-
-  if (excludes && excludes.includes(req.path)) {
-    return next();
-  }
   const token = req.headers.authorization?.split(' ')[1];
-  //Authorization: 'Bearer TOKEN'
-  if (!token) {
-    res.status(401).send({
+  if (!token && !(excludes && excludes.includes(req.path))) {
+    res.status(401).json({
       message: 'invalid token',
       result: null,
     });
-  } else {
+  }
+
+  if (token) {
+    //Authorization: 'Bearer TOKEN'
+
     let decoded: string | jwt.JwtPayload = '';
 
     // console.log('decode', decoded);
@@ -88,7 +87,7 @@ export const verifyMiddleware = (excludes?: string[]) => (req: AuthRequest, res:
     }
 
     if (errors.length > 1) {
-      res.status(403).send({
+      res.status(403).json({
         message: errors.join('; '),
         result: null,
       });

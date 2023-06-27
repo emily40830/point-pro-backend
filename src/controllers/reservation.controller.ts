@@ -5,18 +5,6 @@ import { ApiResponse, AuthRequest } from '../types/shared';
 import { AuthService, ReservationService } from '../services';
 import { ReservationType } from '@prisma/client';
 
-// id: reservation.id,
-//           reservedAt: reservation.reservedAt,
-//           type: reservation.type,
-//           options: reservation.options,
-//           periodStartedAt: reservation.bookedSeats[0].period.startedAt,
-//           periodEndedAt: reservation.bookedSeats[0].period.endedAt,
-//           seats: reservation.bookedSeats.map((bookedSeat) => ({
-//             id: bookedSeat.seatId,
-//             seatNo: bookedSeat.seat.prefix + '-' + bookedSeat.seat.no,
-//             amount: bookedSeat.seat.amount,
-//           })),
-
 type ReservationInfo = {
   id: string;
   reservedAt: Date;
@@ -208,6 +196,7 @@ class ReservationController {
       }
     }
   };
+  public static searchReservationHandler = async (req: AuthRequest, res: ApiResponse) => {};
 }
 
 export default ReservationController;
