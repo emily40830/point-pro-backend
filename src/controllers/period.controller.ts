@@ -78,11 +78,38 @@ class PeriodController {
   };
 
   public static getPeriods = async (req: AuthRequest, res: ApiResponse<DatePeriodInfo[]>) => {
-    console.log('date', new Date());
+    const querySchema = object({
+      from: dateSchema().optional(),
+      to: dateSchema().optional(),
+    });
+    try {
+      await querySchema.validate(req.query);
+    } catch (error) {
+      return res.status(400).send({
+        message: 'invalid date format',
+        result: null,
+      });
+    }
+
+    const { from, to } = querySchema.cast(req.query);
+    console.log(from, to);
+
+    const targetDate = from || new Date();
+    const nextTargetDate = to || new Date(targetDate);
+
+    if (!to) {
+      nextTargetDate.setDate(nextTargetDate.getDate() + 30 * 6);
+      console.log(targetDate, nextTargetDate);
+    } else {
+      nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+      console.log(targetDate, nextTargetDate);
+    }
+
     const periods = await prismaClient.period.findMany({
       where: {
         startedAt: {
-          gte: new Date(),
+          gte: targetDate,
+          lte: nextTargetDate,
         },
         seatPeriod: {
           some: {
