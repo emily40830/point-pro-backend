@@ -3,6 +3,7 @@ import { prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 import { AuthService, ReservationService } from '../services';
+import { ReservationType } from '@prisma/client';
 
 // id: reservation.id,
 //           reservedAt: reservation.reservedAt,
@@ -15,6 +16,18 @@ import { AuthService, ReservationService } from '../services';
 //             seatNo: bookedSeat.seat.prefix + '-' + bookedSeat.seat.no,
 //             amount: bookedSeat.seat.amount,
 //           })),
+
+type ReservationInfo = {
+  id: string;
+  reservedAt: Date;
+  type: ReservationType;
+  options: { [key: string]: any };
+  periodStartedAt: Date;
+  periodEndedAt: Date;
+  startOfMeal: Date | null;
+  endOfMeal: Date | null;
+  seats: PartialSeat[];
+};
 
 type PartialSeat = {
   id: string;
@@ -45,7 +58,7 @@ class ReservationController {
     try {
       await inputSchema.validate(req.body);
     } catch (error) {
-      res.status(400).send({
+      res.status(400).json({
         message: (error as Error).message,
         result: null,
       });
@@ -90,49 +103,111 @@ class ReservationController {
 
         const token = await AuthService.generateReservationToken(reservation.id);
 
-        res.status(201).send({
+        res.status(201).json({
           message: 'Successfully Create Reservation',
           result: { ...result, token },
         });
       }
     } else {
-      res.status(status).send({
+      res.status(status).json({
         message: details,
         result: null,
       });
     }
   };
   public static getReservationsHandler = async (req: AuthRequest, res: ApiResponse) => {
-    const userRole = req.auth.role;
-    if ('reservationLogId' in req.auth) {
-      // do something
-    }
-    if (userRole != 'USER') {
-      let reservationLogs = await prismaClient.reservationLog.findMany({ take: 100, include: { bookedSeats: true } });
-      res.status(200).send({
-        message: 'successfully get reservation logs',
-        result: reservationLogs,
-      });
-    }
-
     try {
-      const reservations = await prismaClient.reservationLog.findMany({});
+      const reservations = await prismaClient.reservationLog.findMany({
+        include: {
+          bookedSeats: {
+            include: {
+              seat: true,
+              period: true,
+            },
+          },
+        },
+      });
 
-      return res.status(200).send({
+      // console.log(reservations);
+
+      const result: ReservationInfo[] = reservations
+        .filter((reservation) => reservation.bookedSeats.length > 0)
+        .map((reservation) => {
+          console.log(reservation.bookedSeats[0]);
+          return {
+            id: reservation.id,
+            reservedAt: reservation.reservedAt,
+            type: reservation.type,
+            options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
+            periodStartedAt: reservation.bookedSeats[0].period.startedAt,
+            periodEndedAt: reservation.bookedSeats[0].period.endedAt,
+            startOfMeal: reservation.startOfMeal,
+            endOfMeal: reservation.endOfMeal,
+            seats: reservation.bookedSeats.map((seatRelation) => ({
+              id: seatRelation.seat.id,
+              seatNo: seatRelation.seat.prefix + '-' + seatRelation.seat.no,
+              amount: seatRelation.seat.amount,
+            })),
+          };
+        });
+
+      return res.status(200).json({
         message: 'successfully get reservations',
-        result: reservations,
+        result,
       });
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(400).send({
+        return res.status(400).json({
           message: error.message,
           result: null,
         });
       }
     }
   };
+  public static getReservationDetailsHandler = async (req: AuthRequest, res: ApiResponse) => {
+    const { reservationId } = req.params;
+    try {
+      const reservation = await prismaClient.reservationLog.findUnique({
+        where: { id: reservationId },
+        include: {
+          bookedSeats: {
+            include: {
+              seat: true,
+              period: true,
+            },
+          },
+        },
+      });
 
-  public static getReservationDetailsHandler = () => {};
+      const result: ReservationInfo | null = reservation && {
+        id: reservation.id,
+        reservedAt: reservation.reservedAt,
+        type: reservation.type,
+        options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
+        periodStartedAt: reservation.bookedSeats[0].period.startedAt,
+        periodEndedAt: reservation.bookedSeats[0].period.endedAt,
+        startOfMeal: reservation.startOfMeal,
+        endOfMeal: reservation.endOfMeal,
+        seats: reservation.bookedSeats.map((seatRelation) => ({
+          id: seatRelation.seat.id,
+          seatNo: seatRelation.seat.prefix + '-' + seatRelation.seat.no,
+          amount: seatRelation.seat.amount,
+        })),
+      };
+
+      return res.status(200).json({
+        message: 'successfully get reservation',
+        result,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+          result: null,
+        });
+      }
+    }
+  };
 }
 
 export default ReservationController;
