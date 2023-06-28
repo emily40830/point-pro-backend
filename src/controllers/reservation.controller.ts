@@ -3,38 +3,9 @@ import { prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 import { AuthService, ReservationService } from '../services';
-import { ReservationType } from '@prisma/client';
 
 import { v4 as uuidv4 } from 'uuid';
-import { CreateRecord } from '../types/reservation';
-
-type ReservationInfo = {
-  id: string;
-  reservedAt: Date;
-  type: ReservationType;
-  options: { [key: string]: any };
-  periodStartedAt: Date;
-  periodEndedAt: Date;
-  startOfMeal: Date | null;
-  endOfMeal: Date | null;
-  seats: PartialSeat[];
-};
-
-type PartialSeat = {
-  id: string;
-  seatNo: string;
-  amount: number;
-};
-
-type CreateReservation = {
-  id: string;
-  reservedAt: Date;
-  options: { [key: string]: any };
-  periodStartedAt: Date;
-  periodEndedAt: Date;
-  token: string;
-  seats: PartialSeat[];
-};
+import { CreateRecord, CreateReservation, ReservationInfo } from '../types/reservation';
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
@@ -227,7 +198,11 @@ class ReservationController {
       }
     }
   };
-  public static searchReservationHandler = async (req: AuthRequest, res: ApiResponse) => {};
+  public static searchReservationHandler = async (req: AuthRequest, res: ApiResponse) => {
+    const querySchema = object({
+      query: string().required(),
+    });
+  };
 }
 
 export default ReservationController;
