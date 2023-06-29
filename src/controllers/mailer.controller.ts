@@ -23,7 +23,7 @@ const mailSchema = object().shape({
   html: string().required('缺少內容'),
 });
 
-export default class MailServiceController {
+export class MailServiceController {
   public static transporter: nodemailer.Transporter;
 
   //SEND MAIL
@@ -54,17 +54,23 @@ export default class MailServiceController {
         result: info,
       });
     } catch (error) {
-      console.log(error);
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
     }
   };
-  //VERIFY CONNECTION
-  public static async verifyConnection() {
-    return await MailServiceController.transporter.verify();
-  }
-  //CREATE TRANSPOTER
-  public static getTransporter() {
-    console.log(MailServiceController.transporter);
-  }
+
+  public static verifyConnection: RequestHandler = async (req: Request, res: ApiResponse) => {
+    try {
+      const isVerify = await MailServiceController.transporter.verify();
+      res.status(200).send({
+        message: isVerify ? '已連接' : '未連接',
+        result: isVerify,
+      });
+    } catch (error) {
+      console.log('catch err:', error);
+      res.status(500).json({ message: 'Internal server error', result: error });
+    }
+  };
 }
 
 MailServiceController.transporter = nodemailer.createTransport({
@@ -80,3 +86,5 @@ MailServiceController.transporter = nodemailer.createTransport({
     accessToken: process.env.GMAIL_API_ACCESS_TOKEN,
   },
 });
+
+export default MailServiceController;

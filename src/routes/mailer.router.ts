@@ -5,6 +5,5 @@ const mailerRouter = Router();
 
 mailerRouter.post('/', MailServiceController.sendMail);
 mailerRouter.get('/verify', MailServiceController.verifyConnection);
-mailerRouter.get('/transporter', MailServiceController.getTransporter);
 
 export default mailerRouter;
