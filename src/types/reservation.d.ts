@@ -33,3 +33,10 @@ export type CreateReservation = {
   token: string;
   seats: PartialSeat[];
 };
+
+export type UpdateReservation = {
+  id: string;
+  options: { [key: string]: any };
+  startOfMeal: Date;
+  endOfMeal: Date;
+};
