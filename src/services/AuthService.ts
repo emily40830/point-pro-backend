@@ -167,7 +167,7 @@ export class AuthService {
             sendError: false,
           });
         }
-        const seatNo = seat.prefix + '-' + seat.no.toString().padStart(2, '0');
+        const seatNo = seat.prefix + '-' + seat.no.toString();
         const startTime = new Date();
         const periodStartTime = period.startedAt;
         const periodEndTime = period.endedAt;
