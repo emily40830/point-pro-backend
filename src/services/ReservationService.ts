@@ -3,7 +3,8 @@ import { dayjs, prismaClient } from '../helpers';
 import { CreateRecord } from '../types/reservation';
 
 export class ReservationService {
-  static createOnlineBookingRecord = async (
+  static createAutoReservedSeatsRecord = async (
+    type: ReservationType,
     logId: string,
     periodStartedAt: Date,
     amount: number,
@@ -33,7 +34,7 @@ export class ReservationService {
     const seatPeriods = await prismaClient.seatPeriod.findMany({
       where: {
         periodId: period?.id,
-        canOnlineBooked: true,
+        canOnlineBooked: type === 'OnlineBooking',
         canBooked: true,
       },
       include: {
