@@ -230,7 +230,12 @@ class ReservationController {
       });
 
       const newReservation: Prisma.ReservationLogUpdateInput = {
-        options: ignoreUndefined(options, reservationLog.options),
+        options:
+          options === undefined
+            ? reservationLog.options
+            : typeof reservationLog.options === 'object'
+            ? { ...reservationLog.options, ...options }
+            : ignoreUndefined(options, reservationLog.options),
         startOfMeal: ignoreUndefined(startOfMeal, reservationLog.startOfMeal),
         endOfMeal: ignoreUndefined(endOfMeal, reservationLog.endOfMeal),
       };
