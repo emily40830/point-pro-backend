@@ -201,8 +201,10 @@ class OrderController {
                 },
               },
             },
+            reservationLogId: true,
             reservationsLogs: {
               select: {
+                id: true,
                 bookedSeats: {
                   include: {
                     seat: true,
