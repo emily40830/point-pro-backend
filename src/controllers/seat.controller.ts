@@ -3,7 +3,7 @@ import { ApiResponse, AuthRequest } from '../types/shared';
 import { ReservationInfo } from '../types/reservation';
 import { formatReservationOptions, getDefaultDate, prismaClient } from '../helpers';
 import { object, date as dateSchema, string } from 'yup';
-import { Period, ReservationType } from '@prisma/client';
+import { Period, ReservationLog, ReservationSeat, ReservationType, Seat, SeatPeriod } from '@prisma/client';
 
 export const SeatStatus = {
   RESERVED: 'RESERVED',
@@ -197,10 +197,16 @@ class SeatController {
     const targetDate = targetDateTime;
     const nextTargetDate = new Date(targetDate);
     nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+    let seatDetails:
+      | (Seat & {
+          periods: (SeatPeriod & {
+            period: Period;
+          })[];
+        })
+      | null = null;
 
     try {
-      // get seat by id or seat no
-      let seatDetails = await prismaClient.seat.findUnique({
+      seatDetails = await prismaClient.seat.findUnique({
         where: {
           id: seatIdOrNo,
         },
@@ -215,79 +221,81 @@ class SeatController {
               },
             },
             include: {
-              period: {
-                include: {
-                  ReservationSeat: {
-                    include: {
-                      reservationLog: {
-                        include: {
-                          bookedSeats: {
-                            include: {
-                              seat: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+              period: true,
             },
           },
         },
       });
-      if (!seatDetails) {
-        const [prefix, no] = seatIdOrNo.split('-');
-        seatDetails = await prismaClient.seat.findUnique({
-          where: {
-            seatNo: {
-              prefix: prefix,
-              no: Number(no),
-            },
+    } catch (error) {
+      const [prefix, no] = seatIdOrNo.split('-');
+      seatDetails = await prismaClient.seat.findUnique({
+        where: {
+          seatNo: {
+            prefix: prefix,
+            no: Number(no),
           },
-          include: {
-            periods: {
-              where: {
-                period: {
-                  startedAt: {
-                    gte: targetDate,
-                    lte: nextTargetDate,
-                  },
-                },
-              },
-              include: {
-                period: {
-                  include: {
-                    ReservationSeat: {
-                      include: {
-                        reservationLog: {
-                          include: {
-                            bookedSeats: {
-                              include: {
-                                seat: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
+        },
+        include: {
+          periods: {
+            where: {
+              period: {
+                startedAt: {
+                  gte: targetDate,
+                  lte: nextTargetDate,
                 },
               },
             },
+            include: {
+              period: true,
+            },
           },
-        });
-      }
-      if (!seatDetails || seatDetails === null) {
-        return res.status(404).json({
-          message: `Can not found seat by ${seatIdOrNo}`,
-          result: null,
-        });
-      }
+        },
+      });
+    }
+
+    if (!seatDetails) {
+      return res.status(404).json({
+        message: `Can not found seat by ${seatIdOrNo}`,
+        result: null,
+      });
+    }
+    const periodIds = seatDetails.periods.map((period) => period.periodId);
+
+    try {
+      // get seat by id or seat no
+
+      const reservationSeats = await prismaClient.reservationSeat.findMany({
+        where: {
+          seatId: seatDetails.id,
+          periodId: {
+            in: periodIds,
+          },
+        },
+      });
+
+      const reservationLogs = await prismaClient.reservationLog.findMany({
+        where: {
+          id: {
+            in: reservationSeats.map((seat) => seat.reservationLogId),
+          },
+        },
+        include: {
+          bookedSeats: {
+            include: {
+              seat: true,
+              period: true,
+            },
+          },
+        },
+      });
 
       const allPeriods: SeatDetails['periods'] = seatDetails.periods.map((seatPeriod) => {
         const reservationLog =
-          seatPeriod.period.ReservationSeat.length > 0 ? seatPeriod.period.ReservationSeat[0].reservationLog : null;
+          reservationLogs.find(
+            (reservationLog) =>
+              reservationLog.bookedSeats && reservationLog.bookedSeats[0].periodId === seatPeriod.periodId,
+          ) || null;
+
         const reservedSeats = reservationLog
           ? reservationLog.bookedSeats.map((bookSeat) => ({
               id: bookSeat.seatId,
@@ -320,7 +328,6 @@ class SeatController {
       const result: SeatDetails = {
         id: seatDetails.id,
         seatNo: seatDetails.prefix + '-' + seatDetails.no,
-
         date: targetDateTime,
         periods: allPeriods,
       };
