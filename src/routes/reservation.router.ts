@@ -5,6 +5,7 @@ const reservationRouter = Router();
 
 reservationRouter.post('/', ReservationController.createReservationHandler);
 reservationRouter.get('/', ReservationController.getReservationsHandler);
-reservationRouter.get('/:reservationId', ReservationController.getReservationDetailsHandler);
+reservationRouter.get('/:reservationLogId', ReservationController.getReservationDetailsHandler);
+reservationRouter.patch('/:reservationLogId', ReservationController.updateReservationHandler);
 
 export default reservationRouter;

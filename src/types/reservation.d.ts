@@ -1,4 +1,4 @@
-import { ReservationType } from '@prisma/client';
+import { ReservationLog, ReservationType } from '@prisma/client';
 export type CreateRecord = {
   status: number;
   details: string;
@@ -34,9 +34,4 @@ export type CreateReservation = {
   seats: PartialSeat[];
 };
 
-export type UpdateReservation = {
-  id: string;
-  options: { [key: string]: any };
-  startOfMeal: Date;
-  endOfMeal: Date;
-};
+export type UpdateReservation = Pick<ReservationLog, 'id' | 'options' | 'startOfMeal' | 'endOfMeal'>;
