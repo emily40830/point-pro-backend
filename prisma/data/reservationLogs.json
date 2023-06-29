@@ -1,0 +1,50 @@
+[
+  {
+    "reservedAt": "2023-06-29 16:00:00",
+    "type": "OnlineBooking",
+    "options": {
+      "name": "葉舒華",
+      "email": "yeh@gidle.com",
+      "phone": "0912345678",
+      "remark": "",
+      "adult": 4
+    },
+    "periodStartedAt": "2023-07-05 18:00:00",
+    "periodEndedAt": "2023-07-05 20:00:00",
+    "startOfMeal": "2023-07-05 18:03:30",
+    "endOfMeal": "2023-07-05 19:43:00",
+    "seats": ["A-1", "A-2"]
+  },
+  {
+    "reservedAt": "2023-06-29 16:00:00",
+    "type": "PhoneBooking",
+    "options": {
+      "name": "宋雨琦",
+      "email": "yuqi@gidle.com",
+      "phone": "0912345678",
+      "remark": "",
+      "adult": 1
+    },
+    "periodStartedAt": "2023-07-15 22:00:00",
+    "periodEndedAt": "2023-07-16 00:00:00",
+    "startOfMeal": null,
+    "endOfMeal": null,
+    "seats": ["C-3"]
+  },
+  {
+    "reservedAt": "2023-06-29 16:00:00",
+    "type": "PhoneBooking",
+    "options": {
+      "name": "曹薇娟",
+      "email": "miyeion@gidle.com",
+      "phone": "0912345678",
+      "remark": "",
+      "adult": 10
+    },
+    "periodStartedAt": "2023-07-20 12:00:00",
+    "periodEndedAt": "2023-07-21 14:00:00",
+    "startOfMeal": "2023-07-20 12:05:00",
+    "endOfMeal": null,
+    "seats": ["G-3"]
+  }
+]

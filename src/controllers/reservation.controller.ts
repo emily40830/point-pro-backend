@@ -1,40 +1,12 @@
 import { array, date, number, object, string } from 'yup';
-import { prismaClient } from '../helpers';
+import { ignoreUndefined, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 import { AuthService, ReservationService } from '../services';
-import { ReservationType } from '@prisma/client';
 
 import { v4 as uuidv4 } from 'uuid';
-import { CreateRecord } from '../types/reservation';
-
-type ReservationInfo = {
-  id: string;
-  reservedAt: Date;
-  type: ReservationType;
-  options: { [key: string]: any };
-  periodStartedAt: Date;
-  periodEndedAt: Date;
-  startOfMeal: Date | null;
-  endOfMeal: Date | null;
-  seats: PartialSeat[];
-};
-
-type PartialSeat = {
-  id: string;
-  seatNo: string;
-  amount: number;
-};
-
-type CreateReservation = {
-  id: string;
-  reservedAt: Date;
-  options: { [key: string]: any };
-  periodStartedAt: Date;
-  periodEndedAt: Date;
-  token: string;
-  seats: PartialSeat[];
-};
+import { CreateRecord, CreateReservation, ReservationInfo, UpdateReservation } from '../types/reservation';
+import { Prisma, ReservationType } from '@prisma/client';
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
@@ -61,34 +33,41 @@ class ReservationController {
 
     const { type, options, amount, seats, periodStartedAt } = inputSchema.cast(req.body);
 
-    if (isMerchant && !seats) {
-      res.status(400).json({
-        message: 'Invalid Seats',
-        result: null,
-      });
-    }
+    // if (isMerchant && !seats) {
+    //   res.status(400).json({
+    //     message: 'Invalid Seats',
+    //     result: null,
+    //   });
+    // }
     const reservationLogId = uuidv4();
     let createReservationResult: CreateRecord = {
       status: 0,
       details: '',
       reservationLogId,
     };
-    switch (type) {
-      case 'OnlineBooking':
-        createReservationResult = await ReservationService.createOnlineBookingRecord(
-          reservationLogId,
-          periodStartedAt,
-          amount,
-          options,
-        );
-      case 'PhoneBooking':
-        createReservationResult = await ReservationService.createPhoneBookingRecord(
-          reservationLogId,
-          periodStartedAt,
-          seats,
-          options,
-        );
-    }
+    createReservationResult = await ReservationService.createAutoReservedSeatsRecord(
+      type as ReservationType,
+      reservationLogId,
+      periodStartedAt,
+      amount,
+      options,
+    );
+    // switch (type) {
+    //   case 'OnlineBooking':
+    //     createReservationResult = await ReservationService.createOnlineBookingRecord(
+    //       reservationLogId,
+    //       periodStartedAt,
+    //       amount,
+    //       options,
+    //     );
+    //   case 'PhoneBooking':
+    //     createReservationResult = await ReservationService.createPhoneBookingRecord(
+    //       reservationLogId,
+    //       periodStartedAt,
+    //       seats,
+    //       options,
+    //     );
+    // }
 
     if (reservationLogId) {
       const reservation = await prismaClient.reservationLog.findUnique({
@@ -184,10 +163,10 @@ class ReservationController {
     }
   };
   public static getReservationDetailsHandler = async (req: AuthRequest, res: ApiResponse) => {
-    const { reservationId } = req.params;
+    const { reservationLogId } = req.params;
     try {
       const reservation = await prismaClient.reservationLog.findUnique({
-        where: { id: reservationId },
+        where: { id: reservationLogId },
         include: {
           bookedSeats: {
             include: {
@@ -227,7 +206,62 @@ class ReservationController {
       }
     }
   };
-  public static searchReservationHandler = async (req: AuthRequest, res: ApiResponse) => {};
+  public static updateReservationHandler = async (req: AuthRequest, res: ApiResponse<UpdateReservation>) => {
+    const inputSchema = object({
+      options: object().optional(),
+      startOfMeal: date().optional(),
+      endOfMeal: date().optional(),
+    });
+    const { reservationLogId } = req.params;
+
+    try {
+      await inputSchema.validate(req.body);
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
+    const { options, startOfMeal, endOfMeal } = inputSchema.cast(req.body);
+
+    try {
+      const reservationLog = await prismaClient.reservationLog.findUniqueOrThrow({
+        where: { id: reservationLogId },
+      });
+
+      const newReservation: Prisma.ReservationLogUpdateInput = {
+        options:
+          options === undefined
+            ? reservationLog.options
+            : typeof reservationLog.options === 'object'
+            ? { ...reservationLog.options, ...options }
+            : ignoreUndefined(options, reservationLog.options),
+        startOfMeal: ignoreUndefined(startOfMeal, reservationLog.startOfMeal),
+        endOfMeal: ignoreUndefined(endOfMeal, reservationLog.endOfMeal),
+      };
+
+      const updatedReservation = await prismaClient.reservationLog.update({
+        where: {
+          id: reservationLogId,
+        },
+        data: newReservation,
+      });
+      return res.status(200).json({
+        message: 'update reservationLog success',
+        result: {
+          id: updatedReservation.id,
+          options: updatedReservation.options,
+          startOfMeal: updatedReservation.startOfMeal,
+          endOfMeal: updatedReservation.endOfMeal,
+        },
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
+  };
 }
 
 export default ReservationController;
