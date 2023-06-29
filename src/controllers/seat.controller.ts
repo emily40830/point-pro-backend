@@ -65,12 +65,58 @@ class SeatController {
 
     try {
       const { date, periodId } = querySchema.cast(req.query);
-
+      let period: Period | null = null;
       const targetDate = date ? new Date(date) : getDefaultDate();
-      const nextTargetDate = new Date(targetDate);
-      console.log(new Date().toLocaleDateString('zh-tw'));
 
-      nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+      if (!date && periodId) {
+        period = await prismaClient.period.findUnique({
+          where: {
+            id: periodId,
+          },
+        });
+        if (!period) {
+          return res.status(404).json({
+            message: 'Can not found period from given periodId',
+            result: null,
+          });
+        }
+      } else {
+        const nextTargetDate = new Date(targetDate);
+
+        nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+
+        console.log(targetDate, nextTargetDate);
+
+        let periods = await prismaClient.period.findMany({
+          where: {
+            startedAt: {
+              gte: targetDate,
+              lte: nextTargetDate,
+            },
+          },
+        });
+
+        if (periodId) {
+          period = periods.find((period) => period.id === periodId) || null;
+          if (period === null) {
+            return res.status(400).json({
+              message: 'date and periodId not match',
+              result: null,
+            });
+          }
+        } else {
+          let currPeriod: Period = periods[0];
+          for (let p of periods) {
+            if (
+              Math.abs(p.startedAt.valueOf() - targetDate.valueOf()) <
+              Math.abs(currPeriod.startedAt.valueOf() - targetDate.valueOf())
+            ) {
+              currPeriod = p;
+            }
+          }
+          period = currPeriod;
+        }
+      }
 
       const seats = await prismaClient.seat.findMany({
         select: {
@@ -79,41 +125,6 @@ class SeatController {
           no: true,
         },
       });
-      console.log(targetDate, nextTargetDate);
-
-      let periods = await prismaClient.period.findMany({
-        where: {
-          startedAt: {
-            gte: targetDate,
-            lte: nextTargetDate,
-          },
-        },
-      });
-
-      let period: Period | undefined;
-      if (periodId) {
-        period = periods.find((period) => period.id === periodId);
-        if (!period) {
-          return res.status(400).json({
-            message: 'invalid date and period pair',
-            result: null,
-          });
-        }
-      }
-
-      if (!period) {
-        let currPeriod = periods[0];
-        console.log(currPeriod);
-        for (let p of periods) {
-          if (
-            Math.abs(p.startedAt.valueOf() - targetDate.valueOf()) <
-            Math.abs(currPeriod.startedAt.valueOf() - targetDate.valueOf())
-          ) {
-            currPeriod = p;
-          }
-        }
-        period = currPeriod;
-      }
 
       const targetPeriod = period;
 
