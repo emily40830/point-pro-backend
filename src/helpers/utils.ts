@@ -1,5 +1,7 @@
+import { Prisma } from '@prisma/client';
 import { ResponseError } from '../types/shared';
 import { dayjs } from './dayjs-util';
+import { date as dateSchema, object } from 'yup';
 
 export const secret = process.env.POINT_PRO_SECRET || 'point-proo';
 
@@ -32,6 +34,22 @@ export class Logger {
 
 export const ignoreUndefined = (newValue: any, defaultValue: any) => {
   return newValue !== undefined ? newValue : defaultValue;
+};
+
+export const formatReservationOptions = (options: Prisma.JsonValue) => {
+  return typeof options === 'object' && options ? options : undefined;
+};
+
+export const getDefaultDate = () => {
+  const dateInput = object({
+    date: dateSchema()
+      .optional()
+      .default(() => new Date()),
+  });
+  const todayDateString = new Date().toLocaleDateString('zh-tw');
+  const { date } = dateInput.cast({ date: todayDateString });
+
+  return date;
 };
 
 export const throwError = (

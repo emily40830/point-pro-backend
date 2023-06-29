@@ -1,12 +1,17 @@
 import { RequestHandler } from 'express';
 import { ApiResponse, AuthRequest } from '../types/shared';
 import { ReservationInfo } from '../types/reservation';
-import { dayjs, prismaClient } from '../helpers';
+import { dayjs, formatReservationOptions, getDefaultDate, prismaClient } from '../helpers';
 import { object, date as dateSchema, string } from 'yup';
 import { Period, ReservationType } from '@prisma/client';
 
-const SeatStatus = ['RESERVED', 'AVAILABLE', 'OCCUPIED'] as const;
+export const SeatStatus = {
+  RESERVED: 'RESERVED',
+  AVAILABLE: 'AVAILABLE',
+  OCCUPIED: 'OCCUPIED',
+};
 
+export type SeatStatus = (typeof SeatStatus)[keyof typeof SeatStatus];
 const DEFAULT_USER = {
   name: 'donttouch',
   email: 'canyouhearme@example.com',
@@ -20,30 +25,32 @@ const DEFAULT_USER = {
 type SeatDetails = {
   id: string;
   seatNo: string;
-  status: 'RESERVED' | 'AVAILABLE' | 'OCCUPIED';
+  status: SeatStatus;
   date: Date;
   history: ReservationInfo[];
 };
 
 type ReservationRecord = Pick<
   ReservationInfo,
-  'startOfMeal' | 'endOfMeal' | 'options' | 'periodId' | 'periodStartedAt'
+  'startOfMeal' | 'endOfMeal' | 'options' | 'periodId' | 'periodStartedAt' | 'periodEndedAt'
 >;
 
-type SeatAndReservationInfo = {
+type SeatInfo = {
   id: string;
   seatNo: string;
-  status: 'RESERVED' | 'AVAILABLE' | 'OCCUPIED';
+  status: SeatStatus;
   date: Date;
-  currentReservation: ReservationRecord;
+  period: Pick<Period, 'id' | 'startedAt' | 'endedAt'>;
+  currentReservation: Pick<
+    ReservationInfo,
+    'id' | 'reservedAt' | 'type' | 'startOfMeal' | 'endOfMeal' | 'options'
+  > | null;
 };
 
 class SeatController {
   public static getAllSeatHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     const querySchema = object({
-      date: dateSchema()
-        .optional()
-        .default(() => new Date()),
+      date: dateSchema().optional(),
       periodId: string().optional(),
     });
 
@@ -59,8 +66,9 @@ class SeatController {
     try {
       const { date, periodId } = querySchema.cast(req.query);
 
-      const targetDate = date ? new Date(date) : new Date();
+      const targetDate = date ? new Date(date) : getDefaultDate();
       const nextTargetDate = new Date(targetDate);
+      console.log(new Date().toLocaleDateString('zh-tw'));
 
       nextTargetDate.setDate(nextTargetDate.getDate() + 1);
 
@@ -85,6 +93,12 @@ class SeatController {
       let period: Period | undefined;
       if (periodId) {
         period = periods.find((period) => period.id === periodId);
+        if (!period) {
+          return res.status(400).json({
+            message: 'invalid date and period pair',
+            result: null,
+          });
+        }
       }
 
       if (!period) {
@@ -100,12 +114,13 @@ class SeatController {
         }
         period = currPeriod;
       }
-      console.log('period', period);
+
+      const targetPeriod = period;
 
       const reservationLogs = await prismaClient.reservationSeat.findMany({
         where: {
           periodId: {
-            equals: period.id,
+            equals: targetPeriod.id,
           },
         },
         include: {
@@ -122,37 +137,32 @@ class SeatController {
         },
       });
 
-      const result: SeatAndReservationInfo[] = seats.map((seat) => {
-        const status = SeatStatus[Math.floor(Math.random() * SeatStatus.length)];
-        const startedAt = dayjs(targetDate).set('hour', 12).set('minute', 0).set('second', 0);
-        let currentReservation: ReservationRecord = {
-          periodStartedAt: startedAt.toDate(),
-          // endedAt: startedAt.add(2, 'hour').toDate(),
-          startOfMeal: startedAt.add(5, 'minute').toDate(),
-          endOfMeal: startedAt.add(1.5, 'hour').toDate(),
-          options: {},
-        };
-
-        if (status !== 'AVAILABLE') {
+      const result: SeatInfo[] = seats.map((seat) => {
+        const reservations = reservationLogs.filter((reservation) => reservation.seatId === seat.id);
+        let currentReservation: SeatInfo['currentReservation'] | null = null;
+        if (reservations.length > 0) {
+          const current = reservationLogs[0];
           currentReservation = {
-            ...currentReservation,
-            options: {
-              name: 'donttouch',
-              email: 'canyouhearme@example.com',
-              phone: '0987654321',
-              adults: 1,
-              gender: 0,
-              remark: '',
-              children: 0,
-            },
+            id: current.reservationLog.id,
+            type: current.reservationLog.type,
+            reservedAt: current.reservationLog.reservedAt,
+            startOfMeal: current.reservationLog.startOfMeal,
+            endOfMeal: current.reservationLog.endOfMeal,
+            options: formatReservationOptions(current.reservationLog.options),
           };
         }
+        const seatStatus = currentReservation
+          ? currentReservation.startOfMeal !== null
+            ? SeatStatus.OCCUPIED
+            : SeatStatus.RESERVED
+          : SeatStatus.AVAILABLE;
 
         return {
           id: seat.id,
           seatNo: seat.prefix + '-' + seat.no,
-          status: status,
-          date: new Date(targetDate),
+          status: seatStatus,
+          date: targetDate,
+          period: { id: targetPeriod.id, startedAt: targetPeriod.startedAt, endedAt: targetPeriod.endedAt },
           currentReservation,
         };
       });
@@ -217,8 +227,6 @@ class SeatController {
           result: null,
         });
       }
-      // get reservation log by seat
-      // SeatPeriod 當天所有時段的狀態 包含預約記錄
       const seatPeriods = await prismaClient.seatPeriod.findMany({
         where: {
           AND: [
@@ -297,10 +305,7 @@ class SeatController {
             periodEndedAt: seatPeriod.period.endedAt,
             startOfMeal: currentReservationLog.startOfMeal,
             endOfMeal: currentReservationLog.endOfMeal,
-            options:
-              typeof currentReservationLog.options === 'object' && currentReservationLog.options
-                ? currentReservationLog.options
-                : undefined,
+            options: formatReservationOptions(currentReservationLog.options),
             seats,
           };
         });
