@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ApiResponse, AuthRequest } from '../types/shared';
 import { ReservationInfo } from '../types/reservation';
-import { dayjs, formatReservationOptions, getDefaultDate, prismaClient } from '../helpers';
+import { formatReservationOptions, getDefaultDate, prismaClient } from '../helpers';
 import { object, date as dateSchema, string } from 'yup';
 import { Period, ReservationType } from '@prisma/client';
 
@@ -12,28 +12,16 @@ export const SeatStatus = {
 };
 
 export type SeatStatus = (typeof SeatStatus)[keyof typeof SeatStatus];
-const DEFAULT_USER = {
-  name: 'donttouch',
-  email: 'canyouhearme@example.com',
-  phone: '0987654321',
-  adults: 1,
-  gender: 0,
-  remark: '',
-  children: 0,
-};
 
 type SeatDetails = {
   id: string;
   seatNo: string;
-  status: SeatStatus;
   date: Date;
-  history: ReservationInfo[];
+  periods: (Pick<Period, 'id' | 'startedAt' | 'endedAt'> & {
+    status: SeatStatus;
+    reservation: ReservationInfo | null;
+  })[];
 };
-
-type ReservationRecord = Pick<
-  ReservationInfo,
-  'startOfMeal' | 'endOfMeal' | 'options' | 'periodId' | 'periodStartedAt' | 'periodEndedAt'
->;
 
 type SeatInfo = {
   id: string;
@@ -192,9 +180,7 @@ class SeatController {
   public static getSeatHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse) => {
     const { seatIdOrNo } = req.params;
     const querySchema = object({
-      date: dateSchema()
-        .optional()
-        .default(() => new Date()),
+      date: dateSchema().optional(),
     });
 
     try {
@@ -206,195 +192,137 @@ class SeatController {
       });
     }
     const { date } = querySchema.cast(req.query);
-    const targetDateTime = date ?? new Date();
+    const targetDateTime = date ?? getDefaultDate();
 
-    const dateString = date.toLocaleDateString('zh-tw');
-
-    const targetDate = date ? new Date(dateString) : new Date();
+    const targetDate = targetDateTime;
     const nextTargetDate = new Date(targetDate);
     nextTargetDate.setDate(nextTargetDate.getDate() + 1);
 
     try {
       // get seat by id or seat no
-      let seatDetailsById = await prismaClient.seat.findUnique({
+      let seatDetails = await prismaClient.seat.findUnique({
         where: {
           id: seatIdOrNo,
         },
+        include: {
+          periods: {
+            where: {
+              period: {
+                startedAt: {
+                  gte: targetDate,
+                  lte: nextTargetDate,
+                },
+              },
+            },
+            include: {
+              period: {
+                include: {
+                  ReservationSeat: {
+                    include: {
+                      reservationLog: {
+                        include: {
+                          bookedSeats: {
+                            include: {
+                              seat: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
-      if (!seatDetailsById) {
+      if (!seatDetails) {
         const [prefix, no] = seatIdOrNo.split('-');
-        seatDetailsById = await prismaClient.seat.findUnique({
+        seatDetails = await prismaClient.seat.findUnique({
           where: {
             seatNo: {
               prefix: prefix,
               no: Number(no),
             },
           },
+          include: {
+            periods: {
+              where: {
+                period: {
+                  startedAt: {
+                    gte: targetDate,
+                    lte: nextTargetDate,
+                  },
+                },
+              },
+              include: {
+                period: {
+                  include: {
+                    ReservationSeat: {
+                      include: {
+                        reservationLog: {
+                          include: {
+                            bookedSeats: {
+                              include: {
+                                seat: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         });
       }
-      if (!seatDetailsById || seatDetailsById === null) {
+      if (!seatDetails || seatDetails === null) {
         return res.status(404).json({
           message: `Can not found seat by ${seatIdOrNo}`,
           result: null,
         });
       }
-      const seatPeriods = await prismaClient.seatPeriod.findMany({
-        where: {
-          AND: [
-            {
-              seatId: seatDetailsById?.id,
-            },
-            {
-              period: {
-                startedAt: {
-                  gte: targetDate,
-                  lte: nextTargetDate,
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          period: {
-            include: {
-              ReservationSeat: {
-                include: {
-                  reservationLog: true,
-                },
-              },
-            },
+
+      const allPeriods: SeatDetails['periods'] = seatDetails.periods.map((seatPeriod) => {
+        const reservationLog =
+          seatPeriod.period.ReservationSeat.length > 0 ? seatPeriod.period.ReservationSeat[0].reservationLog : null;
+        const reservedSeats = reservationLog
+          ? reservationLog.bookedSeats.map((bookSeat) => ({
+              id: bookSeat.seatId,
+              seatNo: bookSeat.seat.prefix + '-' + bookSeat.seat.no,
+              amount: bookSeat.seat.amount,
+            }))
+          : [];
+        const currentStatus = reservationLog
+          ? reservationLog.startOfMeal
+            ? SeatStatus.OCCUPIED
+            : SeatStatus.RESERVED
+          : SeatStatus.AVAILABLE;
+        return {
+          id: seatPeriod.periodId,
+          startedAt: seatPeriod.period.startedAt,
+          endedAt: seatPeriod.period.endedAt,
+          status: currentStatus,
+          reservation: reservationLog && {
+            id: reservationLog.id,
+            reservedAt: reservationLog.reservedAt,
+            type: reservationLog.type,
+            startOfMeal: reservationLog.startOfMeal,
+            endOfMeal: reservationLog.endOfMeal,
+            options: formatReservationOptions(reservationLog.options),
+            seats: reservedSeats,
           },
-        },
+        };
       });
-      const reservationLogs = await prismaClient.reservationLog.findMany({
-        where: {
-          bookedSeats: {
-            some: {
-              seatId: {
-                equals: seatDetailsById.id,
-              },
-            },
-            every: {
-              period: {
-                startedAt: {
-                  lte: nextTargetDate,
-                  gte: targetDate,
-                },
-              },
-            },
-          },
-        },
-        include: {
-          bookedSeats: {
-            include: {
-              seat: true,
-            },
-          },
-        },
-      });
-
-      const reserved: ReservationInfo[] = seatPeriods
-        .filter((s) => s.period.ReservationSeat.length > 0)
-        .map((seatPeriod) => {
-          const currentReservationLog = seatPeriod.period.ReservationSeat[0].reservationLog;
-
-          const seats =
-            reservationLogs
-              .find((r) => r.id === currentReservationLog.id)
-              ?.bookedSeats.map((s) => ({
-                id: s.seat.id,
-                seatNo: s.seat.prefix + '-' + s.seat.no,
-                amount: s.seat.amount,
-              })) || [];
-          return {
-            // status: !seatPeriod.canBooked && seatPeriod.period.ReservationSeat.length > 0 ? 'RESERVED' : 'AVAILABLE',
-            id: currentReservationLog.id,
-            reservedAt: currentReservationLog.reservedAt,
-            type: currentReservationLog.type,
-            periodId: seatPeriod.periodId,
-            periodStartedAt: seatPeriod.period.startedAt,
-            periodEndedAt: seatPeriod.period.endedAt,
-            startOfMeal: currentReservationLog.startOfMeal,
-            endOfMeal: currentReservationLog.endOfMeal,
-            options: formatReservationOptions(currentReservationLog.options),
-            seats,
-          };
-        });
-
-      const walkInSeating = await prismaClient.reservationLog.findMany({
-        where: {
-          type: ReservationType.WalkInSeating,
-          startOfMeal: {
-            gte: targetDate,
-            lte: nextTargetDate,
-          },
-          bookedSeats: {
-            some: {},
-            every: {
-              AND: [
-                {
-                  seatId: seatDetailsById?.id,
-                },
-              ],
-            },
-          },
-        },
-        include: {
-          bookedSeats: {
-            include: {
-              seat: true,
-              period: true,
-            },
-          },
-        },
-      });
-
-      const walkInReserved: ReservationInfo[] = walkInSeating.map((walkIn) => ({
-        id: walkIn.id,
-        reservedAt: walkIn.reservedAt,
-        type: walkIn.type,
-        startOfMeal: walkIn.startOfMeal,
-        endOfMeal: walkIn.endOfMeal,
-        options: typeof walkIn.options === 'object' && walkIn.options ? walkIn.options : DEFAULT_USER,
-        seats: walkIn.bookedSeats.map((s) => ({
-          id: s.seat.id,
-          seatNo: s.seat.prefix + '-' + s.seat.no,
-          amount: s.seat.amount,
-        })),
-      }));
-
-      let currentStatus: 'RESERVED' | 'AVAILABLE' | 'OCCUPIED' = 'AVAILABLE';
-      for (let record of seatPeriods.filter(
-        (seatPeriod) => !seatPeriod.canBooked && seatPeriod.period.ReservationSeat.length > 0,
-      )) {
-        const reservationLog = record.period.ReservationSeat[0];
-
-        if (record.period.startedAt <= targetDateTime && record.period.endedAt >= targetDateTime) {
-          if (reservationLog.reservationLog.startOfMeal !== null) {
-            currentStatus = 'OCCUPIED';
-          } else {
-            currentStatus = 'RESERVED';
-          }
-        }
-      }
-      if (currentStatus === 'AVAILABLE') {
-        for (let record of walkInSeating.filter((d) => d.bookedSeats.length > 0)) {
-          // const reservationLog = record.period.ReservationSeat[0];
-
-          if (record.startOfMeal !== null && record.startOfMeal <= targetDateTime && record.endOfMeal === null) {
-            currentStatus = 'OCCUPIED';
-          } else {
-            currentStatus = 'RESERVED';
-          }
-        }
-      }
 
       const result: SeatDetails = {
-        id: seatDetailsById.id,
-        seatNo: seatDetailsById.prefix + '-' + seatDetailsById.no,
-        status: currentStatus,
+        id: seatDetails.id,
+        seatNo: seatDetails.prefix + '-' + seatDetails.no,
+
         date: targetDateTime,
-        history: [...reserved, ...walkInReserved],
+        periods: allPeriods,
       };
 
       res.status(200).json({
