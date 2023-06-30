@@ -40,6 +40,18 @@ export const formatReservationOptions = (options: Prisma.JsonValue) => {
   return typeof options === 'object' && options ? options : undefined;
 };
 
+export const getDateOnly = (targetDate: Date) => {
+  const dateInput = object({
+    date: dateSchema()
+      .optional()
+      .default(() => new Date()),
+  });
+  const todayDateString = targetDate.toLocaleDateString('zh-tw');
+  const { date } = dateInput.cast({ date: todayDateString });
+
+  return date;
+};
+
 export const getDefaultDate = () => {
   const dateInput = object({
     date: dateSchema()

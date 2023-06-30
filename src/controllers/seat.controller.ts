@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ApiResponse, AuthRequest } from '../types/shared';
 import { ReservationInfo } from '../types/reservation';
-import { formatReservationOptions, getDefaultDate, prismaClient } from '../helpers';
+import { formatReservationOptions, getDateOnly, getDefaultDate, prismaClient } from '../helpers';
 import { object, date as dateSchema, string } from 'yup';
 import { Period, ReservationLog, ReservationSeat, ReservationType, Seat, SeatPeriod } from '@prisma/client';
 
@@ -54,7 +54,7 @@ class SeatController {
     try {
       const { date, periodId } = querySchema.cast(req.query);
       let period: Period | null = null;
-      const targetDate = date ? new Date(date) : getDefaultDate();
+      const targetDate = date ? getDateOnly(date) : getDefaultDate();
 
       if (!date && periodId) {
         period = await prismaClient.period.findUnique({
