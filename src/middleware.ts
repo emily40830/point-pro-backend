@@ -4,7 +4,7 @@ import { ApiResponse, AuthRequest } from './types/shared';
 import { object, string, number, date } from 'yup';
 import session from 'express-session';
 
-const verifyAdminSchema = object({
+export const verifyAdminSchema = object({
   sub: string().required(),
   iat: number().required(),
   exp: number().required(),
@@ -14,7 +14,7 @@ const verifyAdminSchema = object({
   role: string().required(),
 });
 
-const verifyReservationSchema = object({
+export const verifyReservationSchema = object({
   reservationLogId: string().required(),
   reservationType: string().optional(),
   startTime: date().required(),

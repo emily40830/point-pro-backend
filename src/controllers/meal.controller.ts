@@ -41,7 +41,7 @@ class MealController {
       let result = meals.map((meal) => ({ ...meal, categories: meal.categories.map(({ categoryId }) => categoryId) }));
 
       return res.status(200).send({
-        message: 'successfully get meals',
+        message: 'GET_MEALS',
         result,
       });
     } catch (error) {
@@ -80,7 +80,7 @@ class MealController {
       };
 
       return res.status(200).send({
-        message: 'successfully get a meals',
+        message: 'GET_MEAL',
         result,
       });
     } catch (error) {
@@ -157,7 +157,7 @@ class MealController {
       });
 
       return res.status(201).send({
-        message: 'successfully create a meal',
+        message: 'CREATE_MEAL',
         result: meal,
       });
     } catch (error) {
@@ -316,7 +316,7 @@ class MealController {
         },
       });
 
-      return res.status(200).send({ message: 'updated meal successfully', result: updatedMeal });
+      return res.status(200).send({ message: 'UPDATE_MEAL', result: updatedMeal });
     } catch (error) {
       res.status(404).send({
         message: (error as Error).message,
@@ -336,9 +336,22 @@ class MealController {
 
       const meal = await prismaClient.meal.delete({
         where: { id: mealId },
+        include: {
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+          specialties: {
+            include: {
+              specialty: true,
+            },
+          },
+        },
       });
-      return res.status(204).send({
-        message: 'successfully delete a meal',
+
+      return res.status(200).send({
+        message: 'DELETE_MEAL',
         result: meal,
       });
     } catch (error) {
