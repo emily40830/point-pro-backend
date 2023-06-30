@@ -19,7 +19,21 @@ app.use(sessionMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', verifyMiddleware(['/auth/login', '/auth/register', '/menu', '/period', '/reservation']), apiRouter);
+app.use(
+  '/api',
+  verifyMiddleware(['/auth/login', '/auth/register', '/menu', '/period', '/reservation', '/mail', '/mail/verify']),
+  apiRouter,
+);
 app.use(errorMiddleware);
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaughted Exception!');
+  console.error(err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未捕捉到的 rejection:', promise, '原因：', reason);
+});
 
 export default app;

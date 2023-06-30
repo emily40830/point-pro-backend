@@ -271,6 +271,10 @@ export class PaymentController {
         params as unknown as ALLPaymentParams,
       );
       const htmlRedirectPostForm = await payment.checkout(/* 可選填發票 */);
+
+      const payments = await PaymentProcessor.createPaymentLog(orders);
+      console.log('ec pay request payments:', payments);
+
       res.send({ message: 'ec-pay checkout', result: htmlRedirectPostForm });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error', result: null });
