@@ -5,6 +5,7 @@ import { ApiResponse, AuthRequest } from '../types/shared';
 type PeriodInfo = {
   id: string;
   periodStartedAt: Date;
+  periodEndedAt: Date;
   amount: number;
   available: number;
 };
@@ -83,6 +84,9 @@ class PeriodController {
       excludeTime: boolean()
         .optional()
         .default(() => true),
+      isOnlineBooking: boolean()
+        .optional()
+        .default(() => true),
     });
     try {
       await querySchema.validate(req.query);
@@ -93,7 +97,7 @@ class PeriodController {
       });
     }
 
-    const { date, excludeTime } = querySchema.cast(req.query);
+    const { date, excludeTime, isOnlineBooking } = querySchema.cast(req.query);
 
     // date : undefined; excludeTime: true
     // -> from: getDefaultDate(); to: from.setDate(nextTargetDate.getDate() + 30 * 6)
@@ -106,7 +110,7 @@ class PeriodController {
 
     // date: 2023-06-25; excludeTime: false
     // -> from: date; to: getDateOnly(date).setDate(getDateOnly(date).getDate() + 1)
-    console.log(date, excludeTime);
+    console.log(date, excludeTime, isOnlineBooking);
 
     const targetDate =
       date && excludeTime
@@ -135,14 +139,14 @@ class PeriodController {
         },
         seatPeriod: {
           some: {
-            canOnlineBooked: true,
+            canOnlineBooked: isOnlineBooking,
           },
         },
       },
       include: {
         seatPeriod: {
           where: {
-            canOnlineBooked: true,
+            canOnlineBooked: isOnlineBooking,
           },
           include: {
             seat: {
@@ -170,6 +174,7 @@ class PeriodController {
       return {
         id: period.id,
         periodStartedAt: period.startedAt,
+        periodEndedAt: period.endedAt,
         amount: total,
         available,
       };
