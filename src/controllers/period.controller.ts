@@ -95,13 +95,38 @@ class PeriodController {
 
     const { date, excludeTime } = querySchema.cast(req.query);
 
-    const targetDate = date && excludeTime ? getDateOnly(date) : date && !excludeTime ? date : getDefaultDate();
-    let nextTargetDate = new Date(targetDate);
+    // date : undefined; excludeTime: true
+    // -> from: getDefaultDate(); to: from.setDate(nextTargetDate.getDate() + 30 * 6)
 
-    nextTargetDate.setDate(nextTargetDate.getDate() + 1);
-    nextTargetDate = excludeTime ? nextTargetDate : getDateOnly(nextTargetDate);
+    // date: undefined; excludeTime: false
+    // -> from: new Date(); to: from.setDate(nextTargetDate.getDate() + 30 * 6)
+
+    // date: 2023-06-25; excludeTime: true
+    // -> from: getDateOnly(date); to: from.setDate(nextTargetDate.getDate() + 1)
+
+    // date: 2023-06-25; excludeTime: false
+    // -> from: date; to: getDateOnly(date).setDate(getDateOnly(date).getDate() + 1)
+    console.log(date, excludeTime);
+
+    const targetDate =
+      date && excludeTime
+        ? getDateOnly(date)
+        : date && !excludeTime
+        ? date
+        : !date && excludeTime
+        ? getDefaultDate()
+        : new Date();
+
+    console.log(targetDate);
+    let nextTargetDate = getDateOnly(targetDate);
+
+    if (date) {
+      nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+    } else {
+      nextTargetDate.setDate(nextTargetDate.getDate() + 30 * 6);
+    }
+
     console.log(targetDate, nextTargetDate);
-
     const periods = await prismaClient.period.findMany({
       where: {
         startedAt: {
