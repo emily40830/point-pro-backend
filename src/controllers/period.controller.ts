@@ -1,5 +1,5 @@
-import { object, date as dateSchema } from 'yup';
-import { dayjs, prismaClient } from '../helpers';
+import { object, date as dateSchema, boolean } from 'yup';
+import { getDateOnly, getDefaultDate, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 type PeriodInfo = {
@@ -79,8 +79,10 @@ class PeriodController {
 
   public static getPeriods = async (req: AuthRequest, res: ApiResponse<DatePeriodInfo[]>) => {
     const querySchema = object({
-      from: dateSchema().optional(),
-      to: dateSchema().optional(),
+      date: dateSchema().optional(),
+      excludeTime: boolean()
+        .optional()
+        .default(() => true),
     });
     try {
       await querySchema.validate(req.query);
@@ -91,19 +93,14 @@ class PeriodController {
       });
     }
 
-    const { from, to } = querySchema.cast(req.query);
-    console.log(from, to);
+    const { date, excludeTime } = querySchema.cast(req.query);
 
-    const targetDate = from || new Date();
-    const nextTargetDate = to || new Date(targetDate);
+    const targetDate = date && excludeTime ? getDateOnly(date) : date && !excludeTime ? date : getDefaultDate();
+    let nextTargetDate = new Date(targetDate);
 
-    if (!to) {
-      nextTargetDate.setDate(nextTargetDate.getDate() + 30 * 6);
-      console.log(targetDate, nextTargetDate);
-    } else {
-      nextTargetDate.setDate(nextTargetDate.getDate() + 1);
-      console.log(targetDate, nextTargetDate);
-    }
+    nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+    nextTargetDate = excludeTime ? nextTargetDate : getDateOnly(nextTargetDate);
+    console.log(targetDate, nextTargetDate);
 
     const periods = await prismaClient.period.findMany({
       where: {
