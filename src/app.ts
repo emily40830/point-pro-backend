@@ -19,7 +19,11 @@ app.use(sessionMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', verifyMiddleware(['/auth/login', '/auth/register', '/menu', '/period', '/reservation']), apiRouter);
+app.use(
+  '/api',
+  verifyMiddleware(['/auth/login', '/auth/register', '/menu', '/period', '/reservation', '/mail', '/mail/verify']),
+  apiRouter,
+);
 app.use(errorMiddleware);
 
 process.on('uncaughtException', (err) => {
