@@ -192,7 +192,7 @@ class SeatController {
       });
     }
     const { date } = querySchema.cast(req.query);
-    const targetDateTime = date ?? getDefaultDate();
+    const targetDateTime = date ? getDateOnly(date) : getDefaultDate();
 
     const targetDate = targetDateTime;
     const nextTargetDate = new Date(targetDate);
@@ -289,41 +289,45 @@ class SeatController {
         },
       });
 
-      const allPeriods: SeatDetails['periods'] = seatDetails.periods.map((seatPeriod) => {
-        const reservationLog =
-          reservationLogs.find(
-            (reservationLog) =>
-              reservationLog.bookedSeats && reservationLog.bookedSeats[0].periodId === seatPeriod.periodId,
-          ) || null;
+      const allPeriods: SeatDetails['periods'] = seatDetails.periods
+        .map((seatPeriod) => {
+          const reservationLog =
+            reservationLogs.find(
+              (reservationLog) =>
+                reservationLog.bookedSeats && reservationLog.bookedSeats[0].periodId === seatPeriod.periodId,
+            ) || null;
 
-        const reservedSeats = reservationLog
-          ? reservationLog.bookedSeats.map((bookSeat) => ({
-              id: bookSeat.seatId,
-              seatNo: bookSeat.seat.prefix + '-' + bookSeat.seat.no,
-              amount: bookSeat.seat.amount,
-            }))
-          : [];
-        const currentStatus = reservationLog
-          ? reservationLog.startOfMeal
-            ? SeatStatus.OCCUPIED
-            : SeatStatus.RESERVED
-          : SeatStatus.AVAILABLE;
-        return {
-          id: seatPeriod.periodId,
-          startedAt: seatPeriod.period.startedAt,
-          endedAt: seatPeriod.period.endedAt,
-          status: currentStatus,
-          reservation: reservationLog && {
-            id: reservationLog.id,
-            reservedAt: reservationLog.reservedAt,
-            type: reservationLog.type,
-            startOfMeal: reservationLog.startOfMeal,
-            endOfMeal: reservationLog.endOfMeal,
-            options: formatReservationOptions(reservationLog.options),
-            seats: reservedSeats,
-          },
-        };
-      });
+          const reservedSeats = reservationLog
+            ? reservationLog.bookedSeats.map((bookSeat) => ({
+                id: bookSeat.seatId,
+                seatNo: bookSeat.seat.prefix + '-' + bookSeat.seat.no,
+                amount: bookSeat.seat.amount,
+              }))
+            : [];
+          const currentStatus = reservationLog
+            ? reservationLog.startOfMeal && !reservationLog.startOfMeal
+              ? SeatStatus.OCCUPIED
+              : reservationLog.startOfMeal && reservationLog.startOfMeal
+              ? SeatStatus.AVAILABLE
+              : SeatStatus.RESERVED
+            : SeatStatus.AVAILABLE;
+          return {
+            id: seatPeriod.periodId,
+            startedAt: seatPeriod.period.startedAt,
+            endedAt: seatPeriod.period.endedAt,
+            status: currentStatus,
+            reservation: reservationLog && {
+              id: reservationLog.id,
+              reservedAt: reservationLog.reservedAt,
+              type: reservationLog.type,
+              startOfMeal: reservationLog.startOfMeal,
+              endOfMeal: reservationLog.endOfMeal,
+              options: formatReservationOptions(reservationLog.options),
+              seats: reservedSeats,
+            },
+          };
+        })
+        .sort((a, b) => a.startedAt.valueOf() - b.startedAt.valueOf());
 
       const result: SeatDetails = {
         id: seatDetails.id,
