@@ -11,6 +11,40 @@ import {
   updateOrderReqBodySchema,
 } from '../schemas';
 
+// [TODO]
+const commonInclude = {
+  reservationsLogs: {
+    select: {
+      id: true,
+      options: true,
+      bookedSeats: {
+        select: {
+          seat: {
+            select: {
+              prefix: true,
+              no: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  orderMeals: {
+    include: {
+      meal: {
+        include: {
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  paymentLogs: true,
+};
+
 class OrderController {
   public static createOrderHandler: RequestHandler = async (req: AuthRequest, res: ApiResponse, next) => {
     try {
@@ -34,40 +68,7 @@ class OrderController {
             },
           },
         },
-        select: {
-          id: true,
-          status: true,
-          type: true,
-          createdAt: true,
-          updatedAt: true,
-          paymentLogs: true,
-          orderMeals: {
-            select: {
-              id: true,
-              price: true,
-              amount: true,
-              servedAmount: true,
-              mealDetails: true,
-              meal: {
-                select: {
-                  id: true,
-                  title: true,
-                  price: true,
-                  categories: {
-                    select: {
-                      category: {
-                        select: {
-                          id: true,
-                          title: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        include: commonInclude,
       });
 
       const result = {
@@ -82,12 +83,12 @@ class OrderController {
             mealId: meal.id,
             title: meal.title,
             categories: meal.categories.map((category) => ({ ...category.category })),
-            specialties: JSON.parse(mealDetails as string), // [TODO] mealDetails type,
+            specialties: JSON.parse(mealDetails as string),
           })) ?? [],
       };
 
       return res.status(201).send({
-        message: 'success',
+        message: 'CREATE_ORDER',
         result,
       });
     } catch (error) {
@@ -100,43 +101,10 @@ class OrderController {
         const { reservationLogId } = reservationLogValidatedSchema.cast(req.auth);
 
         const orders = await prismaClient.orderLog.findMany({
-          select: {
-            id: true,
-            status: true,
-            type: true,
-            createdAt: true,
-            updatedAt: true,
-            paymentLogs: true,
-            orderMeals: {
-              select: {
-                id: true,
-                price: true,
-                amount: true,
-                servedAmount: true,
-                mealDetails: true,
-                meal: {
-                  select: {
-                    id: true,
-                    title: true,
-                    price: true,
-                    categories: {
-                      select: {
-                        category: {
-                          select: {
-                            id: true,
-                            title: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
           where: {
             reservationLogId,
           },
+          include: commonInclude,
         });
 
         const result = orders.map(({ orderMeals, ...rest }) => ({
@@ -155,7 +123,7 @@ class OrderController {
         }));
 
         return res.status(200).send({
-          message: 'success',
+          message: 'CREATE_ORDER',
           result,
         });
       } catch (error) {
@@ -168,53 +136,10 @@ class OrderController {
         const { status } = orderStatusValidatedSchema.cast(req.query);
 
         const orders = await prismaClient.orderLog.findMany({
-          select: {
-            id: true,
-            status: true,
-            type: true,
-            createdAt: true,
-            updatedAt: true,
-            paymentLogs: true,
-            orderMeals: {
-              select: {
-                id: true,
-                price: true,
-                amount: true,
-                servedAmount: true,
-                mealDetails: true,
-                meal: {
-                  select: {
-                    id: true,
-                    title: true,
-                    price: true,
-                    categories: {
-                      select: {
-                        category: {
-                          select: {
-                            id: true,
-                            title: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            reservationsLogs: {
-              select: {
-                bookedSeats: {
-                  include: {
-                    seat: true,
-                    period: true,
-                  },
-                },
-              },
-            },
-          },
           where: {
             status,
           },
+          include: commonInclude,
         });
 
         const result = orders.map(({ orderMeals, reservationsLogs, ...rest }) => {
@@ -241,7 +166,7 @@ class OrderController {
         });
 
         return res.status(200).send({
-          message: 'success',
+          message: 'GET_ORDER',
           result,
         });
       } catch (error) {
@@ -253,16 +178,17 @@ class OrderController {
     try {
       const { orderId } = orderIdValidatedSchema.cast(req.query);
 
-      const orderLog = await prismaClient.orderLog.update({
+      const result = await prismaClient.orderLog.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.CANCEL,
         },
+        include: commonInclude,
       });
 
       return res.status(200).send({
-        message: 'success',
-        result: orderLog,
+        message: 'CANCEL_ORDER',
+        result,
       });
     } catch (error) {
       next(error);
@@ -308,9 +234,7 @@ class OrderController {
           data: {
             status: newStatus,
           },
-          include: {
-            orderMeals: true,
-          },
+          include: commonInclude,
         });
 
         // [TODO] is looping the only way?
@@ -327,7 +251,7 @@ class OrderController {
       });
 
       return res.status(200).send({
-        message: 'success',
+        message: 'UPDATE_ORDER',
         result,
       });
     } catch (error) {

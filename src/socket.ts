@@ -1,10 +1,10 @@
-import { Server as HttpServer } from 'http';
-import { Socket, Server as SocketIOServer } from 'socket.io';
-import { ExtendedError, Namespace } from 'socket.io/dist/namespace';
-import { Logger } from './helpers/utils';
 import jwt from 'jsonwebtoken';
+import { Server as SocketIOServer } from 'socket.io';
+import { Server as HttpServer } from 'http';
+import { Namespace } from 'socket.io/dist/namespace';
+import { Logger } from './helpers/utils';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { ReservationType } from '@prisma/client';
+import { verifyAdminSchema, verifyReservationSchema } from './middleware';
 
 const secret = process.env.POINT_PRO_SECRET || 'point-proo';
 
@@ -22,50 +22,33 @@ enum SocketTopic {
   RESERVATION = 'RESERVATION',
 }
 
-// [TODO] have jwt type to import?
-type JWTDecodedType = {
-  seatNo: string;
-  reservationType: ReservationType;
-  startTime: string;
-  reservationLogId: string;
-  periodStartTime: string;
-  periodEndTime: string;
-  iat: number;
-  exp: number;
-};
-
-// Authentication
-function validated(socket: Socket, next: (err?: ExtendedError | undefined) => void) {
-  // [TODO] Is validation work?
-  const token = socket.handshake.auth.token;
-  try {
-    const decodedJWT = jwt.verify(token, secret);
-    Logger.info(`TOEKN: ${JSON.stringify(decodedJWT)}`);
-    next();
-  } catch (error) {
-    if (error instanceof Error) {
-      next(new Error(error.message));
-    }
-  }
-}
-
 // User Socket
 function usersSocket({ mainNs, adminNs, userNs }: UsersSocketArgType) {
-  userNs.use(validated);
-
   userNs.on('connect', (socket) => {
-    const token = socket.handshake.auth.token;
+    try {
+      // Verify & Decode Token
+      const token = socket.handshake.auth.token;
+      const decoded = jwt.verify(token, secret);
+      verifyReservationSchema.validateSync(decoded);
+      const reservation = verifyReservationSchema.cast(decoded);
 
-    Logger.info(`USER connected: ${socket.id}`);
-    socket.join(token);
-    // Listeners
-    socket.on(SocketTopic.ORDER, (order) => {
-      userNs.to(token).emit(SocketTopic.ORDER, order);
-      adminNs.emit(SocketTopic.ORDER, order);
-    });
-    socket.on(SocketTopic.RESERVATION, (reservation) => {
-      adminNs.emit(SocketTopic.RESERVATION, reservation);
-    });
+      // Join Room
+      socket.join(reservation.reservationLogId);
+
+      // Listeners
+      socket.on(SocketTopic.ORDER, (order) => {
+        userNs.to(reservation.reservationLogId).emit(SocketTopic.ORDER, order);
+        adminNs.emit(SocketTopic.ORDER, order);
+      });
+      socket.on(SocketTopic.RESERVATION, (reservation) => {
+        adminNs.emit(SocketTopic.RESERVATION, reservation);
+      });
+
+      Logger.info(`USER connected: ${socket.id}`);
+    } catch (error) {
+      socket.disconnect();
+      Logger.error(JSON.stringify(error));
+    }
   });
 
   userNs.on('disconnect', (socket) => {
@@ -75,26 +58,36 @@ function usersSocket({ mainNs, adminNs, userNs }: UsersSocketArgType) {
 
 // Admin Socket
 function adminsSocket({ mainNs, adminNs, userNs }: AdminsSocketArgType) {
-  adminNs.use(validated);
-
   adminNs.on('connect', (socket) => {
-    Logger.info(`ADMIN connected: ${socket.id}`);
+    try {
+      // Verify & Decode token
+      const token = socket.handshake.auth.token;
+      const decoded = jwt.verify(token, secret);
+      verifyAdminSchema.validateSync(decoded);
+      const admin = verifyAdminSchema.cast(decoded);
 
-    // Listeners
-    socket.on(SocketTopic.MENU, (menu) => {
-      adminNs.emit(SocketTopic.MENU, menu);
-      userNs.emit(SocketTopic.MENU, menu);
-    });
-    socket.on(SocketTopic.ORDER, (order) => {
-      Logger.info(`ADMIN Order: ${JSON.stringify(order)}`);
-      // [TODO] when admin update order, only the order's user will get the socket. need {room} id
-      adminNs.emit(SocketTopic.ORDER, order);
-      userNs.emit(SocketTopic.ORDER, order);
-    });
-    socket.on(SocketTopic.RESERVATION, (reservation) => {
-      adminNs.emit(SocketTopic.RESERVATION, reservation);
-      userNs.emit(SocketTopic.RESERVATION, reservation);
-    });
+      // Join Room
+      socket.join(admin.memberId);
+
+      // Listeners
+      socket.on(SocketTopic.MENU, (menu) => {
+        adminNs.except(admin.memberId).emit(SocketTopic.MENU, menu);
+        userNs.emit(SocketTopic.MENU, menu);
+      });
+      socket.on(SocketTopic.ORDER, (order) => {
+        adminNs.except(admin.memberId).emit(SocketTopic.ORDER, order);
+        userNs.to(order.result.reservationLogId).emit(SocketTopic.ORDER, order);
+      });
+      socket.on(SocketTopic.RESERVATION, (reservation) => {
+        adminNs.except(admin.memberId).emit(SocketTopic.RESERVATION, reservation);
+        userNs.emit(SocketTopic.RESERVATION, reservation);
+      });
+
+      Logger.info(`ADMIN connected: ${socket.id}`);
+    } catch (error) {
+      socket.disconnect();
+      Logger.error(JSON.stringify(error));
+    }
   });
 
   adminNs.on('disconnect', (socket) => {
