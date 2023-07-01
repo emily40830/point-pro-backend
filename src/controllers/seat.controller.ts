@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import { ApiResponse, AuthRequest } from '../types/shared';
-import { ReservationInfo } from '../types/reservation';
+import { ReservationInfo, ReservationStatus } from '../types/reservation';
 import { formatReservationOptions, getDateOnly, getDefaultDate, prismaClient } from '../helpers';
 import { object, date as dateSchema, string } from 'yup';
 import { Period, ReservationLog, ReservationSeat, ReservationType, Seat, SeatPeriod } from '@prisma/client';
@@ -319,6 +319,11 @@ class SeatController {
             reservation: reservationLog && {
               id: reservationLog.id,
               reservedAt: reservationLog.reservedAt,
+              status: (reservationLog.startOfMeal && reservationLog.endOfMeal
+                ? 'COMPLETED'
+                : reservationLog.startOfMeal
+                ? 'IN_USE'
+                : 'NOT_ATTENDED') as ReservationStatus,
               type: reservationLog.type,
               startOfMeal: reservationLog.startOfMeal,
               endOfMeal: reservationLog.endOfMeal,
