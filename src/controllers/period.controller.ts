@@ -1,7 +1,7 @@
 import { object, date as dateSchema, boolean } from 'yup';
 import { getDateOnly, getDefaultDate, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
-import { Prisma } from '@prisma/client';
+import { Period, Prisma } from '@prisma/client';
 
 type PeriodInfo = {
   id: string;
@@ -154,6 +154,36 @@ class PeriodController {
       message: 'Successfully get periods',
       result: datePeriodsWithAmount.sort((a, b) => a.date.valueOf() - b.date.valueOf()),
     });
+  };
+  public static getPeriodList = async (
+    req: AuthRequest,
+    res: ApiResponse<Pick<PeriodInfo, 'id' | 'periodStartedAt' | 'periodEndedAt'>[]>,
+  ) => {
+    try {
+      const periods = await prismaClient.period.findMany({
+        where: {
+          startedAt: {
+            gte: new Date(),
+          },
+        },
+      });
+
+      const result = periods.map((period) => ({
+        id: period.id,
+        periodStartedAt: period.startedAt,
+        periodEndedAt: period.endedAt,
+      }));
+
+      return res.status(200).json({
+        message: 'successfully get periods',
+        result: result.sort((a, b) => a.periodStartedAt.valueOf() - b.periodStartedAt.valueOf()),
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: (error as Error).message,
+        result: null,
+      });
+    }
   };
 }
 

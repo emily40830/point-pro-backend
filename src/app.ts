@@ -21,7 +21,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   '/api',
-  verifyMiddleware(['/auth/login', '/auth/register', '/menu', '/period', '/reservation', '/mail', '/mail/verify']),
+  verifyMiddleware([
+    '/auth/login',
+    '/auth/register',
+    '/menu',
+    '/period',
+    '/period/list',
+    '/reservation',
+    '/mail',
+    '/mail/verify',
+  ]),
   apiRouter,
 );
 app.use(errorMiddleware);
