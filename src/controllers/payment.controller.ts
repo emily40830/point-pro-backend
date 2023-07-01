@@ -1,4 +1,3 @@
-import os from 'os';
 import { Request, RequestHandler, Response } from 'express';
 import { mixed, object, string } from 'yup';
 import { createLinePayClient } from 'line-pay-merchant';
@@ -70,9 +69,7 @@ export class PaymentController {
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
       if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
       const childOrders = await OrderProcessor.getChildOrders(parentOrder);
-      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) {
-        return this.errorNotFindHandler(res, '訂單已付款');
-      }
+
       if (!childOrders) return this.errorNotFindHandler(res, '訂單不存在');
       linePayOrder = OrderProcessor.createLinePayOrder(childOrders, parentOrder.id, confirmUrl, cancelUrl);
 
@@ -115,7 +112,7 @@ export class PaymentController {
       }
 
       if (await PaymentProcessor.checkPaymentStatus(payments[0].orderId)) {
-        return this.errorNotFindHandler(res, '訂單已付款');
+        return res.status(200).json({ message: '訂單已付款', result: {} });
       }
 
       const response = await PaymentController.linePayClient.confirm.send({
@@ -212,10 +209,6 @@ export class PaymentController {
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
       if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
 
-      if (orders && parentOrder && parentOrder.status === 'SUCCESS') {
-        return this.errorNotFindHandler(res, '訂單已付款');
-      }
-
       const mealTitles =
         orders &&
         orders
@@ -263,8 +256,6 @@ export class PaymentController {
         Redeem: 'Y', // 紅利折抵: undefined(不用) | 'Y' (使用)
       };
 
-      console.log('baseParams', baseParams);
-
       const payment = PaymentController.merchant.createPayment(
         ALLPayment,
         baseParams,
@@ -272,8 +263,7 @@ export class PaymentController {
       );
       const htmlRedirectPostForm = await payment.checkout(/* 可選填發票 */);
 
-      const payments = await PaymentProcessor.createPaymentLog(orders);
-      console.log('ec pay request payments:', payments);
+      await PaymentProcessor.createPaymentLog(orders);
 
       res.send({ message: 'ec-pay checkout', result: htmlRedirectPostForm });
     } catch (error) {
@@ -317,7 +307,7 @@ export class PaymentController {
       }
 
       if (await PaymentProcessor.checkPaymentStatus(payments[0].orderId)) {
-        return this.errorNotFindHandler(res, '訂單已付款');
+        return res.status(400).json({ message: '訂單已付款', result: {} });
       }
 
       await PaymentProcessor.updatePaymentLog({
@@ -342,13 +332,23 @@ export class PaymentController {
 
       const orders = await OrderProcessor.getOrder([orderId]);
 
-      console.log('ec pay confirm orders:', orders);
-
       if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
 
-      const paymentLogs = await PaymentProcessor.getPaymentLog(orders);
+      const payments = await PaymentProcessor.getPaymentLog(orders);
 
-      console.log('ec pay confirm paymentLogs:', paymentLogs);
+      if (!payments) return this.errorNotFindHandler(res, '找不到付款紀錄');
+
+      if (await PaymentProcessor.checkPaymentStatus(payments[0].orderId)) {
+        return res.status(200).json({ message: '訂單已付款', result: {} });
+      }
+
+      await PaymentProcessor.updatePaymentLog({
+        payment: payments,
+        status: 'SUCCESS',
+        gateway: 'EC_PAY',
+      });
+
+      const paymentLogs = await PaymentProcessor.getPaymentLog(orders);
 
       res.status(200).json({
         message: 'success',
@@ -384,7 +384,8 @@ export class PaymentController {
       if (!orders) return this.errorNotFindHandler(res, '訂單不存在');
       const parentOrder = await OrderProcessor.parentOderHandler(orders);
       if (!parentOrder) return this.errorNotFindHandler(res, '訂單不存在');
-      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id)) return this.errorNotFindHandler(res, '訂單已付款');
+      if (await PaymentProcessor.checkPaymentStatus(parentOrder.id))
+        return res.status(200).json({ message: '訂單已付款', result: {} });
       const payments = await PaymentProcessor.createPaymentLog(orders);
 
       await PaymentProcessor.updatePaymentLog({
