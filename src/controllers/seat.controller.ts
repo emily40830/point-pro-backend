@@ -327,9 +327,9 @@ class SeatController {
               }))
             : [];
           const currentStatus = reservationLog
-            ? reservationLog.startOfMeal && !reservationLog.startOfMeal
+            ? reservationLog.startOfMeal && !reservationLog.endOfMeal
               ? SeatStatus.OCCUPIED
-              : reservationLog.startOfMeal && reservationLog.startOfMeal
+              : reservationLog.startOfMeal && reservationLog.endOfMeal
               ? SeatStatus.AVAILABLE
               : SeatStatus.RESERVED
             : SeatStatus.AVAILABLE;

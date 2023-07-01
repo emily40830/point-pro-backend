@@ -7,7 +7,6 @@ import { AuthService, PeriodService, ReservationService } from '../services';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateRecord, CreateReservation, ReservationInfo, UpdateReservation } from '../types/reservation';
 import { Prisma, ReservationType } from '@prisma/client';
-import SingletonRedis from '../helpers/SingletonRedis';
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
