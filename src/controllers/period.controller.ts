@@ -1,6 +1,7 @@
 import { object, date as dateSchema, boolean } from 'yup';
 import { getDateOnly, getDefaultDate, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
+import { Prisma } from '@prisma/client';
 
 type PeriodInfo = {
   id: string;
@@ -131,6 +132,9 @@ class PeriodController {
     }
 
     console.log(targetDate, nextTargetDate);
+    const isOnlineFilter: Prisma.SeatPeriodWhereInput = isOnlineBooking
+      ? { canOnlineBooked: true }
+      : { canOnlineBooked: { not: true } };
     const periods = await prismaClient.period.findMany({
       where: {
         startedAt: {
@@ -138,16 +142,12 @@ class PeriodController {
           lte: nextTargetDate,
         },
         seatPeriod: {
-          some: {
-            canOnlineBooked: isOnlineBooking,
-          },
+          some: isOnlineFilter,
         },
       },
       include: {
         seatPeriod: {
-          where: {
-            canOnlineBooked: isOnlineBooking,
-          },
+          where: isOnlineFilter,
           include: {
             seat: {
               select: {
