@@ -66,37 +66,39 @@ export class PeriodService {
         };
       });
 
-      const datePeriodsWithAmount = periodsWithAmount.reduce<DatePeriodInfo[]>((prev, curr) => {
-        const targets = prev.filter(
-          (d) => d.date.toLocaleDateString('zh-tw') === curr.periodStartedAt.toLocaleDateString('zh-tw'),
-        );
+      const datePeriodsWithAmount = periodsWithAmount
+        .sort((a, b) => a.periodStartedAt.valueOf() - b.periodEndedAt.valueOf())
+        .reduce<DatePeriodInfo[]>((prev, curr) => {
+          const targets = prev.filter(
+            (d) => d.date.toLocaleDateString('zh-tw') === curr.periodStartedAt.toLocaleDateString('zh-tw'),
+          );
 
-        if (targets.length === 0) {
-          const newDatePeriod: DatePeriodInfo = {
-            date: curr.periodStartedAt,
-            periods: [curr],
-            totalAmount: curr.amount,
-            totalAvailable: curr.available,
+          if (targets.length === 0) {
+            const newDatePeriod: DatePeriodInfo = {
+              date: curr.periodStartedAt,
+              periods: [curr],
+              totalAmount: curr.amount,
+              totalAvailable: curr.available,
+            };
+
+            return [...prev, newDatePeriod];
+          }
+          const target = targets[0];
+
+          const newTarget = {
+            ...target,
+            periods: [...target.periods, curr],
+            totalAmount: target.totalAmount + curr.amount,
+            totalAvailable: target.totalAvailable + curr.available,
           };
 
-          return [...prev, newDatePeriod];
-        }
-        const target = targets[0];
-
-        const newTarget = {
-          ...target,
-          periods: [...target.periods, curr],
-          totalAmount: target.totalAmount + curr.amount,
-          totalAvailable: target.totalAvailable + curr.available,
-        };
-
-        return [
-          ...prev.filter(
-            (d) => d.date.toLocaleDateString('zh-tw') !== curr.periodStartedAt.toLocaleDateString('zh-tw'),
-          ),
-          newTarget,
-        ];
-      }, []);
+          return [
+            ...prev.filter(
+              (d) => d.date.toLocaleDateString('zh-tw') !== curr.periodStartedAt.toLocaleDateString('zh-tw'),
+            ),
+            newTarget,
+          ];
+        }, []);
 
       const data = datePeriodsWithAmount.sort((a, b) => a.date.valueOf() - b.date.valueOf());
 

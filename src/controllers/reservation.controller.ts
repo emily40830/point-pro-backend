@@ -1,5 +1,5 @@
 import { date, number, object, string } from 'yup';
-import { ignoreUndefined, prismaClient } from '../helpers';
+import { getDateOnly, ignoreUndefined, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
 import { AuthService, PeriodService, ReservationService } from '../services';
@@ -118,6 +118,11 @@ class ReservationController {
 
     try {
       const { date } = await querySchema.cast(req.query);
+      let nextTargetDate = getDateOnly(date);
+      nextTargetDate.setDate(nextTargetDate.getDate() + 1);
+
+      console.log(date, nextTargetDate);
+
       const reservations = await prismaClient.reservationLog.findMany({
         where: {
           bookedSeats: {
@@ -125,6 +130,7 @@ class ReservationController {
               period: {
                 startedAt: {
                   gte: date,
+                  lte: nextTargetDate,
                 },
               },
             },
@@ -142,32 +148,40 @@ class ReservationController {
 
       // console.log(reservations);
 
-      const result: ReservationInfo[] = reservations
+      const sortedReservations = reservations
         .filter((reservation) => reservation.bookedSeats.length > 0)
-        .map((reservation) => {
-          console.log(reservation.bookedSeats[0]);
-          return {
-            id: reservation.id,
-            reservedAt: reservation.reservedAt,
-            type: reservation.type,
-            status:
-              reservation.startOfMeal && reservation.endOfMeal
-                ? 'COMPLETED'
-                : reservation.startOfMeal
-                ? 'IN_USE'
-                : 'NOT_ATTENDED',
-            options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
-            periodStartedAt: reservation.bookedSeats[0].period.startedAt,
-            periodEndedAt: reservation.bookedSeats[0].period.endedAt,
-            startOfMeal: reservation.startOfMeal,
-            endOfMeal: reservation.endOfMeal,
-            seats: reservation.bookedSeats.map((seatRelation) => ({
-              id: seatRelation.seat.id,
-              seatNo: seatRelation.seat.prefix + '-' + seatRelation.seat.no,
-              amount: seatRelation.seat.amount,
-            })),
-          };
+        .sort((a, b) => {
+          const startedAtA = a.bookedSeats.length > 0 ? a.bookedSeats[0].period.startedAt.valueOf() : 0;
+          const startedAtB = b.bookedSeats.length > 0 ? b.bookedSeats[0].period.startedAt.valueOf() : 0;
+
+          return startedAtA - startedAtB;
         });
+
+      const result: ReservationInfo[] = sortedReservations.map((reservation) => {
+        // console.log(reservation.bookedSeats[0]);
+        return {
+          id: reservation.id,
+          reservedAt: reservation.reservedAt,
+          type: reservation.type,
+          status:
+            reservation.startOfMeal && reservation.endOfMeal
+              ? 'COMPLETED'
+              : reservation.startOfMeal
+              ? 'IN_USE'
+              : 'NOT_ATTENDED',
+          options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
+          periodStartedAt: reservation.bookedSeats[0].period.startedAt,
+          periodEndedAt: reservation.bookedSeats[0].period.endedAt,
+          startOfMeal: reservation.startOfMeal,
+          endOfMeal: reservation.endOfMeal,
+          seats: reservation.bookedSeats.map((seatRelation) => ({
+            id: seatRelation.seat.id,
+            seatNo: seatRelation.seat.prefix + '-' + seatRelation.seat.no,
+            amount: seatRelation.seat.amount,
+          })),
+        };
+      });
+      // result.sort((a, b) => a.periodStartedAt?.valueOf() || 0 - (b.periodEndedAt?.valueOf() || 1));
 
       return res.status(200).json({
         message: 'successfully get reservations',
