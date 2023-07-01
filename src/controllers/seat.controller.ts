@@ -123,49 +123,71 @@ class SeatController {
           },
         },
         include: {
-          reservationLog: {
-            include: {
-              bookedSeats: {
-                include: {
-                  seat: true,
-                },
-              },
-            },
-          },
           seat: true,
         },
       });
+      const reservationList: Pick<
+        ReservationInfo,
+        'id' | 'reservedAt' | 'type' | 'startOfMeal' | 'endOfMeal' | 'options'
+      >[] = [];
 
-      const result: SeatInfo[] = seats.map((seat) => {
-        const reservations = reservationLogs.filter((reservation) => reservation.seatId === seat.id);
-        let currentReservation: SeatInfo['currentReservation'] | null = null;
-        if (reservations.length > 0) {
-          const current = reservationLogs[0];
-          currentReservation = {
-            id: current.reservationLog.id,
-            type: current.reservationLog.type,
-            reservedAt: current.reservationLog.reservedAt,
-            startOfMeal: current.reservationLog.startOfMeal,
-            endOfMeal: current.reservationLog.endOfMeal,
-            options: formatReservationOptions(current.reservationLog.options),
-          };
+      const result: SeatInfo[] = [];
+
+      for (let seat of seats) {
+        const reservationSeat = reservationLogs.find((reservation) => reservation.seatId === seat.id);
+
+        if (!reservationSeat) {
+          result.push({
+            id: seat.id,
+            seatNo: seat.prefix + '-' + seat.no,
+            status: SeatStatus.AVAILABLE,
+            date: targetDate,
+            period: { id: targetPeriod.id, startedAt: targetPeriod.startedAt, endedAt: targetPeriod.endedAt },
+            currentReservation: null,
+          });
+          continue;
         }
-        const seatStatus = currentReservation
-          ? currentReservation.startOfMeal !== null
-            ? SeatStatus.OCCUPIED
-            : SeatStatus.RESERVED
-          : SeatStatus.AVAILABLE;
 
-        return {
+        const currentReservation = reservationList.find((r) => r.id === reservationSeat.id);
+
+        if (currentReservation) {
+          result.push({
+            id: seat.id,
+            seatNo: seat.prefix + '-' + seat.no,
+            status: currentReservation.startOfMeal !== null ? SeatStatus.OCCUPIED : SeatStatus.RESERVED,
+            date: targetDate,
+            period: { id: targetPeriod.id, startedAt: targetPeriod.startedAt, endedAt: targetPeriod.endedAt },
+            currentReservation,
+          });
+          continue;
+        }
+
+        const reservationLog = await prismaClient.reservationLog.findUniqueOrThrow({
+          where: { id: reservationSeat.reservationLogId },
+        });
+
+        const newReservation: Pick<
+          ReservationInfo,
+          'id' | 'reservedAt' | 'type' | 'startOfMeal' | 'endOfMeal' | 'options'
+        > = {
+          id: reservationLog.id,
+          type: reservationLog.type,
+          reservedAt: reservationLog.reservedAt,
+          startOfMeal: reservationLog.startOfMeal,
+          endOfMeal: reservationLog.endOfMeal,
+          options: formatReservationOptions(reservationLog.options),
+        };
+        reservationList.push(newReservation);
+
+        result.push({
           id: seat.id,
           seatNo: seat.prefix + '-' + seat.no,
-          status: seatStatus,
+          status: newReservation.startOfMeal !== null ? SeatStatus.OCCUPIED : SeatStatus.RESERVED,
           date: targetDate,
           period: { id: targetPeriod.id, startedAt: targetPeriod.startedAt, endedAt: targetPeriod.endedAt },
-          currentReservation,
-        };
-      });
-
+          currentReservation: newReservation,
+        });
+      }
       res.status(200).json({
         message: 'Successfully get seats ',
         result,
