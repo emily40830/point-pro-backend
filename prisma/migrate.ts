@@ -99,19 +99,90 @@ const main = async () => {
     await client.$transaction([...createPeriods]);
     console.log('create all periods');
 
-    const periods = await client.period.findMany({});
-    const seats = await client.seat.findMany({});
-    // console.log(periods, seats);
-    const seatPeriods = getSeatPeriods(periods, seats);
     await client.seatPeriod.deleteMany({});
+    console.log('delete all seatPeriods');
 
-    const createSeatPeriods = seatPeriods.map((seatPeriod, index) => {
+    const periods = await client.period.findMany({});
+
+    // prefix A
+    const seatsA = await client.seat.findMany({
+      where: {
+        prefix: 'A',
+      },
+    });
+    const seatPeriodsA = getSeatPeriods(periods, seatsA);
+
+    const createSeatPeriodsA = seatPeriodsA.map((seatPeriod, index) => {
       console.log(index, seatPeriod);
       return client.seatPeriod.create({ data: seatPeriod });
     });
-    for (let i = 0; i < 2592; i++) {
-      await createSeatPeriods[i];
-      console.log(i, createSeatPeriods[i]);
+
+    for (let a of createSeatPeriodsA) {
+      const result = await a;
+      console.log(result);
+    }
+
+    // prefix B
+    const seatsB = await client.seat.findMany({
+      where: {
+        prefix: 'B',
+      },
+    });
+    const seatPeriodsB = getSeatPeriods(periods, seatsB);
+
+    console.log(periods, seatsB);
+    console.log(seatPeriodsB.length);
+
+    const createSeatPeriodsB = seatPeriodsB.map((seatPeriod, index) => {
+      console.log(index, seatPeriod);
+      return client.seatPeriod.create({ data: seatPeriod });
+    });
+
+    for (let b of createSeatPeriodsB) {
+      const result = await b;
+      console.log(result);
+    }
+
+    // prefix C
+    const seatsC = await client.seat.findMany({
+      where: {
+        prefix: 'C',
+      },
+    });
+    const seatPeriodsC = getSeatPeriods(periods, seatsC);
+
+    console.log(periods, seatsC);
+    console.log(seatPeriodsC.length);
+
+    const createSeatPeriodsC = seatPeriodsC.map((seatPeriod, index) => {
+      console.log(index, seatPeriod);
+      return client.seatPeriod.create({ data: seatPeriod });
+    });
+
+    for (let c of createSeatPeriodsC) {
+      const result = await c;
+      console.log(result);
+    }
+
+    // prefix G
+    const seatsG = await client.seat.findMany({
+      where: {
+        prefix: 'G',
+      },
+    });
+    const seatPeriodsG = getSeatPeriods(periods, seatsG);
+
+    console.log(periods, seatsG);
+    console.log(seatPeriodsG.length);
+
+    const createSeatPeriodsG = seatPeriodsG.map((seatPeriod, index) => {
+      console.log(index, seatPeriod);
+      return client.seatPeriod.create({ data: seatPeriod });
+    });
+
+    for (let g of createSeatPeriodsG) {
+      const result = await g;
+      console.log(result);
     }
   } catch (error) {
     console.log(error);

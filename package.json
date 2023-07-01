@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --exit-child --respawn --files src/server.ts",
     "add-seeds:prod": "ts-node-dev --files prisma/migrate.ts",
+    "update-reservations": "ts-node-dev --files prisma/updateReservations.ts",
     "build": "tsc -p .",
     "build:prod": "prisma migrate deploy && prisma generate && tsc -p .",
     "start": "node dist/server.js",

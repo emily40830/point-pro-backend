@@ -18,7 +18,6 @@ class ReservationController {
       type: string().required().oneOf(['OnlineBooking', 'PhoneBooking', 'WalkInSeating']),
       options: object().default(() => {}),
       amount: number().min(1).required(),
-      // seats: array(string().required()).optional().default([]),
       periodStartedAt: date().required(),
     });
 
@@ -55,22 +54,6 @@ class ReservationController {
       options,
     );
     console.log('createReservationResult', createReservationResult);
-    // switch (type) {
-    //   case 'OnlineBooking':
-    //     createReservationResult = await ReservationService.createOnlineBookingRecord(
-    //        reservationLogId,
-    //        periodStartedAt,
-    //        amount,
-    //        options,
-    //     );
-    //   case 'PhoneBooking':
-    //      createReservationResult = await ReservationService.createPhoneBookingRecord(
-    //        reservationLogId,
-    //        periodStartedAt,
-    //        amount,
-    //        options,
-    //     );
-    // }
 
     if (reservationLogId) {
       const reservation = await prismaClient.reservationLog.findUnique({

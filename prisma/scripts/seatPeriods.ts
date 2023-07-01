@@ -2,16 +2,13 @@ import { Prisma, Period, Seat } from '@prisma/client';
 import { seats } from '../data';
 
 export const getSeatPeriods = (periodsData: Period[], seatsData: Seat[]): Prisma.SeatPeriodCreateInput[] => {
-  const seatsWithOnlineBooked = seats.data
-    .filter((seat) => seat?.canOnlineBooked === true)
-    .map((seat) => seat.prefix + '-' + seat.no);
+  const seatsWithBookingSetting = seats.data.map((seat) => ({ ...seat, seatNo: seat.prefix + '-' + seat.no }));
 
-  const seatsDataWithOnlineBooked = seatsData.filter((d) => seatsWithOnlineBooked.includes(d.prefix + '-' + d.no));
-
-  const seatPeriods = seatsDataWithOnlineBooked.reduce<Prisma.SeatPeriodCreateInput[]>(
+  const seatPeriods = seatsData.reduce<Prisma.SeatPeriodCreateInput[]>(
     (prevSeatPeriods: Prisma.SeatPeriodCreateInput[], currSeat) => {
+      const setting = seatsWithBookingSetting.find((s) => s.prefix === currSeat.prefix && s.no === currSeat.no);
       const allPeriodsForCurrentSeat: Prisma.SeatPeriodCreateInput[] = periodsData.map((period) => ({
-        canOnlineBooked: true,
+        canOnlineBooked: setting?.canOnlineBooked ?? false,
         canBooked: true,
         seat: {
           connect: { id: currSeat.id },

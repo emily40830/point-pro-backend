@@ -27,12 +27,14 @@
     {
       "prefix": "A",
       "no": 5,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "A",
       "no": 6,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "B",
@@ -61,12 +63,14 @@
     {
       "prefix": "B",
       "no": 5,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "B",
       "no": 6,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "C",
@@ -83,22 +87,26 @@
     {
       "prefix": "C",
       "no": 3,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "C",
       "no": 4,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "C",
       "no": 5,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "C",
       "no": 6,
-      "peopleAmount": 2
+      "peopleAmount": 2,
+      "canOnlineBooked": false
     },
     {
       "prefix": "G",
@@ -115,7 +123,8 @@
     {
       "prefix": "G",
       "no": 3,
-      "peopleAmount": 10
+      "peopleAmount": 10,
+      "canOnlineBooked": false
     }
   ],
   "siblings": [
