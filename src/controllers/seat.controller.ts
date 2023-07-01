@@ -154,7 +154,12 @@ class SeatController {
           result.push({
             id: seat.id,
             seatNo: seat.prefix + '-' + seat.no,
-            status: currentReservation.startOfMeal !== null ? SeatStatus.OCCUPIED : SeatStatus.RESERVED,
+            status:
+              currentReservation.startOfMeal && !currentReservation.endOfMeal
+                ? SeatStatus.OCCUPIED
+                : currentReservation.startOfMeal && currentReservation.endOfMeal
+                ? SeatStatus.AVAILABLE
+                : SeatStatus.RESERVED,
             date: targetDate,
             period: { id: targetPeriod.id, startedAt: targetPeriod.startedAt, endedAt: targetPeriod.endedAt },
             currentReservation,
