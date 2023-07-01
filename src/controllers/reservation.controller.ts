@@ -1,4 +1,4 @@
-import { array, date, number, object, string } from 'yup';
+import { date, number, object, string } from 'yup';
 import { ignoreUndefined, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
@@ -10,28 +10,28 @@ import { Prisma, ReservationType } from '@prisma/client';
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
-    let isMerchant = false;
-    if (req.auth && req.auth.role !== 'USER') {
-      isMerchant = true;
-    }
+    // let isMerchant = false;
+    // if (req.auth && req.auth.role !== 'USER') {
+    //   isMerchant = true;
+    // }
     const inputSchema = object({
       type: string().required().oneOf(['OnlineBooking', 'PhoneBooking', 'WalkInSeating']),
       options: object().default(() => {}),
       amount: number().min(1).required(),
-      seats: array(string().required()).optional().default([]),
+      // seats: array(string().required()).optional().default([]),
       periodStartedAt: date().required(),
     });
 
     try {
       await inputSchema.validate(req.body);
     } catch (error) {
-      res.status(400).json({
+      return res.status(400).json({
         message: (error as Error).message,
         result: null,
       });
     }
 
-    const { type, options, amount, seats, periodStartedAt } = inputSchema.cast(req.body);
+    const { type, options, amount, periodStartedAt } = inputSchema.cast(req.body);
 
     // if (isMerchant && !seats) {
     //   res.status(400).json({
@@ -39,6 +39,8 @@ class ReservationController {
     //     result: null,
     //   });
     // }
+    console.log(type, options, amount, periodStartedAt);
+
     const reservationLogId = uuidv4();
     let createReservationResult: CreateRecord = {
       status: 0,
@@ -52,20 +54,21 @@ class ReservationController {
       amount,
       options,
     );
+    console.log('createReservationResult', createReservationResult);
     // switch (type) {
     //   case 'OnlineBooking':
     //     createReservationResult = await ReservationService.createOnlineBookingRecord(
-    //       reservationLogId,
-    //       periodStartedAt,
-    //       amount,
-    //       options,
+    //        reservationLogId,
+    //        periodStartedAt,
+    //        amount,
+    //        options,
     //     );
     //   case 'PhoneBooking':
-    //     createReservationResult = await ReservationService.createPhoneBookingRecord(
-    //       reservationLogId,
-    //       periodStartedAt,
-    //       seats,
-    //       options,
+    //      createReservationResult = await ReservationService.createPhoneBookingRecord(
+    //        reservationLogId,
+    //        periodStartedAt,
+    //        amount,
+    //        options,
     //     );
     // }
 
@@ -114,8 +117,34 @@ class ReservationController {
     }
   };
   public static getReservationsHandler = async (req: AuthRequest, res: ApiResponse) => {
+    const querySchema = object({
+      date: date()
+        .optional()
+        .default(() => new Date()),
+    });
     try {
+      await querySchema.validate(req.query);
+    } catch (error) {
+      return res.status(400).json({
+        message: 'invalid date format',
+        result: null,
+      });
+    }
+
+    try {
+      const { date } = await querySchema.cast(req.query);
       const reservations = await prismaClient.reservationLog.findMany({
+        where: {
+          bookedSeats: {
+            every: {
+              period: {
+                startedAt: {
+                  gte: date,
+                },
+              },
+            },
+          },
+        },
         include: {
           bookedSeats: {
             include: {
@@ -136,6 +165,12 @@ class ReservationController {
             id: reservation.id,
             reservedAt: reservation.reservedAt,
             type: reservation.type,
+            status:
+              reservation.startOfMeal && reservation.endOfMeal
+                ? 'COMPLETED'
+                : reservation.startOfMeal
+                ? 'IN_USE'
+                : 'NOT_ATTENDED',
             options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
             periodStartedAt: reservation.bookedSeats[0].period.startedAt,
             periodEndedAt: reservation.bookedSeats[0].period.endedAt,
@@ -181,6 +216,12 @@ class ReservationController {
         id: reservation.id,
         reservedAt: reservation.reservedAt,
         type: reservation.type,
+        status:
+          reservation.startOfMeal && reservation.endOfMeal
+            ? 'COMPLETED'
+            : reservation.startOfMeal
+            ? 'IN_USE'
+            : 'NOT_ATTENDED',
         options: typeof reservation.options === 'object' && reservation.options ? reservation.options : {},
         periodStartedAt: reservation.bookedSeats[0].period.startedAt,
         periodEndedAt: reservation.bookedSeats[0].period.endedAt,
