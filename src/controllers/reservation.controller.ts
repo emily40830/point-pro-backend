@@ -90,7 +90,7 @@ class ReservationController {
         await PeriodService.delPeriods();
 
         res.status(201).json({
-          message: 'Successfully Create Reservation',
+          message: 'CREATE_RESERVATION',
           result: { ...result, token },
         });
       }
@@ -273,7 +273,7 @@ class ReservationController {
         data: newReservation,
       });
       return res.status(200).json({
-        message: 'update reservationLog success',
+        message: 'UPDATE_RESERVATION',
         result: {
           id: updatedReservation.id,
           options: updatedReservation.options,

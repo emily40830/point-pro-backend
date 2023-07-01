@@ -14,16 +14,37 @@ type SocketArgType = {
   adminNs: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
   userNs: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
 };
-type UsersSocketArgType = SocketArgType;
-type AdminsSocketArgType = SocketArgType;
+
+enum NameSpace {
+  main = '/',
+  user = '/user',
+  admin = '/admin',
+}
+
 enum SocketTopic {
   MENU = 'MENU',
   ORDER = 'ORDER',
   RESERVATION = 'RESERVATION',
 }
 
-// User Socket
-function usersSocket({ mainNs, adminNs, userNs }: UsersSocketArgType) {
+// Main Socket (for booking user)
+function mainSocket({ mainNs, adminNs, userNs }: SocketArgType) {
+  mainNs.on('connect', (socket) => {
+    // Listeners
+    socket.on(SocketTopic.RESERVATION, (reservation) => {
+      adminNs.emit(SocketTopic.RESERVATION, reservation);
+    });
+
+    Logger.info(`BOOKING connected: ${socket.id}`);
+  });
+
+  mainNs.on('disconnect', (socket) => {
+    Logger.info(`BOOKING disconnected: ${socket.id}`);
+  });
+}
+
+// User Socket (for order user)
+function usersSocket({ mainNs, adminNs, userNs }: SocketArgType) {
   userNs.on('connect', (socket) => {
     try {
       // Verify & Decode Token
@@ -40,9 +61,6 @@ function usersSocket({ mainNs, adminNs, userNs }: UsersSocketArgType) {
         userNs.to(reservation.reservationLogId).emit(SocketTopic.ORDER, order);
         adminNs.emit(SocketTopic.ORDER, order);
       });
-      socket.on(SocketTopic.RESERVATION, (reservation) => {
-        adminNs.emit(SocketTopic.RESERVATION, reservation);
-      });
 
       Logger.info(`USER connected: ${socket.id}`);
     } catch (error) {
@@ -57,7 +75,7 @@ function usersSocket({ mainNs, adminNs, userNs }: UsersSocketArgType) {
 }
 
 // Admin Socket
-function adminsSocket({ mainNs, adminNs, userNs }: AdminsSocketArgType) {
+function adminsSocket({ mainNs, adminNs, userNs }: SocketArgType) {
   adminNs.on('connect', (socket) => {
     try {
       // Verify & Decode token
@@ -101,12 +119,17 @@ function createWsServer(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, { cors: { origin: '*' } });
 
   // Namespaces
-  const mainNs = io.of('/');
-  const adminNs = io.of('/admin');
-  const userNs = io.of('/user');
+  const mainNs = io.of(NameSpace.main);
+  const userNs = io.of(NameSpace.user);
+  const adminNs = io.of(NameSpace.admin);
 
-  const socketArgs = { mainNs, adminNs, userNs };
+  const socketArgs = {
+    mainNs,
+    userNs,
+    adminNs,
+  };
 
+  mainSocket(socketArgs);
   usersSocket(socketArgs);
   adminsSocket(socketArgs);
 }
