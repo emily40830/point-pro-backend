@@ -40,3 +40,18 @@ type ApiResponse<T = any> = Response<{
 interface ResponseError extends Error {
   code?: number;
 }
+
+type PeriodInfo = {
+  id: string;
+  periodStartedAt: Date;
+  periodEndedAt: Date;
+  amount: number;
+  available: number;
+};
+
+type DatePeriodInfo = {
+  date: Date;
+  periods: PeriodInfo[];
+  totalAmount: number;
+  totalAvailable: number;
+};

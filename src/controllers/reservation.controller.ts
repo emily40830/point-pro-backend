@@ -2,11 +2,12 @@ import { date, number, object, string } from 'yup';
 import { ignoreUndefined, prismaClient } from '../helpers';
 import { ApiResponse, AuthRequest } from '../types/shared';
 
-import { AuthService, ReservationService } from '../services';
+import { AuthService, PeriodService, ReservationService } from '../services';
 
 import { v4 as uuidv4 } from 'uuid';
 import { CreateRecord, CreateReservation, ReservationInfo, UpdateReservation } from '../types/reservation';
 import { Prisma, ReservationType } from '@prisma/client';
+import SingletonRedis from '../helpers/SingletonRedis';
 
 class ReservationController {
   public static createReservationHandler = async (req: AuthRequest, res: ApiResponse<CreateReservation>) => {
@@ -86,6 +87,8 @@ class ReservationController {
         };
 
         const token = await AuthService.generateReservationToken(reservation.id);
+
+        await PeriodService.delPeriods();
 
         res.status(201).json({
           message: 'Successfully Create Reservation',

@@ -149,6 +149,7 @@ export class ReservationService {
         where: {
           seatId: targetSeatPeriod.seat.siblings[0].nextSeatId,
           periodId: targetSeatPeriod.periodId,
+          canBooked: true,
         },
       });
 

@@ -1,22 +1,8 @@
 import { object, date as dateSchema, boolean } from 'yup';
 import { getDateOnly, getDefaultDate, prismaClient } from '../helpers';
-import { ApiResponse, AuthRequest } from '../types/shared';
+import { ApiResponse, AuthRequest, PeriodInfo, DatePeriodInfo } from '../types/shared';
 import { Period, Prisma } from '@prisma/client';
-
-type PeriodInfo = {
-  id: string;
-  periodStartedAt: Date;
-  periodEndedAt: Date;
-  amount: number;
-  available: number;
-};
-
-type DatePeriodInfo = {
-  date: Date;
-  periods: PeriodInfo[];
-  totalAmount: number;
-  totalAvailable: number;
-};
+import { PeriodService } from '../services';
 
 class PeriodController {
   public static getPeriods = async (req: AuthRequest, res: ApiResponse<DatePeriodInfo[]>) => {
@@ -72,87 +58,88 @@ class PeriodController {
     }
 
     console.log(targetDate, nextTargetDate);
-    const isOnlineFilter: Prisma.SeatPeriodWhereInput = isOnlineBooking
-      ? { canOnlineBooked: true }
-      : { canOnlineBooked: { not: true } };
-    const periods = await prismaClient.period.findMany({
-      where: {
-        startedAt: {
-          gte: targetDate,
-          lte: nextTargetDate,
-        },
-        seatPeriod: {
-          some: isOnlineFilter,
-        },
-      },
-      include: {
-        seatPeriod: {
-          where: isOnlineFilter,
-          include: {
-            seat: {
-              select: {
-                prefix: true,
-                no: true,
-                amount: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const result = await PeriodService.getPeriods(isOnlineBooking, targetDate, nextTargetDate, excludeTime);
+    // const isOnlineFilter: Prisma.SeatPeriodWhereInput = isOnlineBooking
+    //   ? { canOnlineBooked: true }
+    //   : { canOnlineBooked: { not: true } };
+    // const periods = await prismaClient.period.findMany({
+    //   where: {
+    //     startedAt: {
+    //       gte: targetDate,
+    //       lte: nextTargetDate,
+    //     },
+    //     seatPeriod: {
+    //       some: isOnlineFilter,
+    //     },
+    //   },
+    //   include: {
+    //     seatPeriod: {
+    //       where: isOnlineFilter,
+    //       include: {
+    //         seat: {
+    //           select: {
+    //             prefix: true,
+    //             no: true,
+    //             amount: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
 
-    const periodsWithAmount: PeriodInfo[] = periods.map((period) => {
-      let total = 0;
-      let available = 0;
+    // const periodsWithAmount: PeriodInfo[] = periods.map((period) => {
+    //   let total = 0;
+    //   let available = 0;
 
-      period.seatPeriod.forEach((seatPeriod) => {
-        if (seatPeriod.canBooked) {
-          available += seatPeriod.seat.amount;
-        }
-        total += seatPeriod.seat.amount;
-      });
-      return {
-        id: period.id,
-        periodStartedAt: period.startedAt,
-        periodEndedAt: period.endedAt,
-        amount: total,
-        available,
-      };
-    });
+    //   period.seatPeriod.forEach((seatPeriod) => {
+    //     if (seatPeriod.canBooked) {
+    //       available += seatPeriod.seat.amount;
+    //     }
+    //     total += seatPeriod.seat.amount;
+    //   });
+    //   return {
+    //     id: period.id,
+    //     periodStartedAt: period.startedAt,
+    //     periodEndedAt: period.endedAt,
+    //     amount: total,
+    //     available,
+    //   };
+    // });
 
-    const datePeriodsWithAmount = periodsWithAmount.reduce<DatePeriodInfo[]>((prev, curr) => {
-      const targets = prev.filter(
-        (d) => d.date.toLocaleDateString('zh-tw') === curr.periodStartedAt.toLocaleDateString('zh-tw'),
-      );
+    // const datePeriodsWithAmount = periodsWithAmount.reduce<DatePeriodInfo[]>((prev, curr) => {
+    //   const targets = prev.filter(
+    //     (d) => d.date.toLocaleDateString('zh-tw') === curr.periodStartedAt.toLocaleDateString('zh-tw'),
+    //   );
 
-      if (targets.length === 0) {
-        const newDatePeriod: DatePeriodInfo = {
-          date: curr.periodStartedAt,
-          periods: [curr],
-          totalAmount: curr.amount,
-          totalAvailable: curr.available,
-        };
+    //   if (targets.length === 0) {
+    //     const newDatePeriod: DatePeriodInfo = {
+    //       date: curr.periodStartedAt,
+    //       periods: [curr],
+    //       totalAmount: curr.amount,
+    //       totalAvailable: curr.available,
+    //     };
 
-        return [...prev, newDatePeriod];
-      }
-      const target = targets[0];
+    //     return [...prev, newDatePeriod];
+    //   }
+    //   const target = targets[0];
 
-      const newTarget = {
-        ...target,
-        periods: [...target.periods, curr],
-        totalAmount: target.totalAmount + curr.amount,
-        totalAvailable: target.totalAvailable + curr.available,
-      };
+    //   const newTarget = {
+    //     ...target,
+    //     periods: [...target.periods, curr],
+    //     totalAmount: target.totalAmount + curr.amount,
+    //     totalAvailable: target.totalAvailable + curr.available,
+    //   };
 
-      return [
-        ...prev.filter((d) => d.date.toLocaleDateString('zh-tw') !== curr.periodStartedAt.toLocaleDateString('zh-tw')),
-        newTarget,
-      ];
-    }, []);
+    //   return [
+    //     ...prev.filter((d) => d.date.toLocaleDateString('zh-tw') !== curr.periodStartedAt.toLocaleDateString('zh-tw')),
+    //     newTarget,
+    //   ];
+    // }, []);
 
     res.status(200).send({
       message: 'Successfully get periods',
-      result: datePeriodsWithAmount.sort((a, b) => a.date.valueOf() - b.date.valueOf()),
+      result,
     });
   };
   public static getPeriodList = async (

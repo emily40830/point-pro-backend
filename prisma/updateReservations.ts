@@ -141,39 +141,8 @@ const findSeatPeriods = async (amount: number, type: ReservationType, periodId: 
     targetSeatPeriod = targetSeatPeriods[0];
 
     return [targetSeatPeriod.seatId];
-
-    // const createReservationLog: Prisma.ReservationLogCreateInput = {
-    //   id: logId,
-    //   reservedAt: new Date(),
-    //   type: 'OnlineBooking',
-    //   startOfMeal: null,
-    //   endOfMeal: null,
-    //   options,
-    //   bookedSeats: {
-    //     create: [
-    //       {
-    //         seatId: targetSeatPeriod.seatId,
-    //         periodId: targetSeatPeriod.periodId,
-    //       },
-    //     ],
-    //   },
-    // };
-
-    // const updateSeatPeriod: Prisma.SeatPeriodUpdateInput = {
-    //   canBooked: { set: false },
-    // };
-
-    // await prismaClient.$transaction([
-    //   prismaClient.reservationLog.create({ data: createReservationLog }),
-    //   prismaClient.seatPeriod.update({ data: updateSeatPeriod, where: { id: targetSeatPeriod.id } }),
-    // ]);
   } else {
     return [];
-    // return {
-    //   status: 400,
-    //   details: 'Invalid Input',
-    //   reservationLogId: '',
-    // };
   }
 };
 
