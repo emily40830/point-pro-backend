@@ -44,12 +44,17 @@ class PeriodController {
     if (process.env?.TIME_ENV === 'prod') {
       targetDate.setHours(targetDate.getHours() - 8);
     }
-    let nextTargetDate = getDateOnly(targetDate);
+    let nextTargetDate = new Date(targetDate);
 
     if (date) {
+      console.log('here');
       nextTargetDate.setDate(nextTargetDate.getDate() + 1);
     } else {
       nextTargetDate.setDate(nextTargetDate.getDate() + 30 * 6);
+    }
+
+    if (process.env?.TIME_ENV === 'prod') {
+      nextTargetDate.setHours(nextTargetDate.getHours() + 16);
     }
 
     console.log(targetDate, nextTargetDate);
