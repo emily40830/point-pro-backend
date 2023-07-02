@@ -206,6 +206,14 @@ export class PaymentProcessor {
         id: {
           in: orderId,
         },
+        // [TODO]
+        orderMeals: {
+          every: {
+            servedAmount: {
+              gt: 0,
+            },
+          },
+        },
       },
       data: {
         status:

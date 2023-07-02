@@ -123,7 +123,7 @@ class OrderController {
         }));
 
         return res.status(200).send({
-          message: 'CREATE_ORDER',
+          message: 'GET_ORDER',
           result,
         });
       } catch (error) {
