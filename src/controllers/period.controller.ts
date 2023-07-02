@@ -39,7 +39,7 @@ class PeriodController {
     // -> from: date; to: getDateOnly(date).setDate(getDateOnly(date).getDate() + 1)
     console.log(date, excludeTime, isOnlineBooking);
 
-    const targetDate = excludeTime ? getDateOnly(date) : date;
+    const targetDate = excludeTime ? getDateOnly(date) : new Date(date);
 
     let nextTargetDate = getDateOnly(targetDate);
 
