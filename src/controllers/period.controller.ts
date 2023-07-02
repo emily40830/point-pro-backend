@@ -7,7 +7,7 @@ import { PeriodService } from '../services';
 class PeriodController {
   public static getPeriods = async (req: AuthRequest, res: ApiResponse<DatePeriodInfo[]>) => {
     const querySchema = object({
-      date: dateSchema().optional(),
+      date: dateSchema().required(),
       excludeTime: boolean()
         .optional()
         .default(() => true),
@@ -39,16 +39,8 @@ class PeriodController {
     // -> from: date; to: getDateOnly(date).setDate(getDateOnly(date).getDate() + 1)
     console.log(date, excludeTime, isOnlineBooking);
 
-    const targetDate =
-      date && excludeTime
-        ? getDateOnly(date)
-        : date && !excludeTime
-        ? date
-        : !date && excludeTime
-        ? getDefaultDate()
-        : new Date();
+    const targetDate = excludeTime ? getDateOnly(date) : date;
 
-    console.log(targetDate);
     let nextTargetDate = getDateOnly(targetDate);
 
     if (date) {
