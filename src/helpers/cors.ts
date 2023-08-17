@@ -17,7 +17,8 @@ const corsOptionDelegate: CorsOptionsDelegate = (
     new URL(origin).hostname.includes('ngrok') ||
     host.startsWith('localhost') ||
     host.startsWith('127.0.0.1') ||
-    new URL(origin).hostname === 'point-pro.vercel.app'
+    new URL(origin).hostname === 'point-pro.vercel.app' ||
+    new URL(origin).hostname === 'point-pro-frontend.vercel.app'
   ) {
     callback(null, { credentials: true, origin: true });
     return;
